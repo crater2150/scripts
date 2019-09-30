@@ -1,0 +1,14 @@
+#!/bin/zsh
+if [[ -n "$@" ]]; then
+	out=$(<"$@")
+else
+	out=$(cat) 
+fi
+((lim=$LINES-1))
+numlines=$(echo $out | wc -l) 
+if (( $numlines > $lim ))
+then
+	echo $out | less -R
+else
+	echo $out
+fi

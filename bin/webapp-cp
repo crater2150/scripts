@@ -1,0 +1,3 @@
+#!/bin/zsh
+profile="${${0:t}%%-cp}"
+cp "$@" $HOME/.jails/firefox-$profile

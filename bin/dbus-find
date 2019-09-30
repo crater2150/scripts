@@ -1,0 +1,17 @@
+#!/bin/zsh
+
+if [[ $1 == "-u" ]]; then
+	USER=$2
+	SUDO="sudo -u $USER"
+	shift 2
+else
+	SUDO=
+fi
+
+export "$({for i in $(pgrep -u $USER dbus-daemon); grep -z DBUS_SESSION_BUS_ADDRESS /proc/$i/environ} | head -n 1)"
+if [[ -z $DBUS_SESSION_BUS_ADDRESS ]]; then
+	echo "No DBUS found"
+	exit 1
+else
+	exec $=SUDO "$@"
+fi

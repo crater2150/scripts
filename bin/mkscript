@@ -1,0 +1,13 @@
+#!/bin/zsh
+BINDIR=$HOME/.local/bin
+if [[ -e $BINDIR/$1 ]]; then
+    echo Script $1 exists, opening for edit
+	$EDITOR $BINDIR/$1
+else
+    touch $BINDIR/$1
+    chmod a+x $BINDIR/$1
+    echo "#!$SHELL" >> $BINDIR/$1
+    $EDITOR $BINDIR/$1
+    exit 0
+fi
+

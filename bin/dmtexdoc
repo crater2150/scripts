@@ -1,0 +1,17 @@
+#!/bin/zsh
+zparseopts -D -E -help=help h=help -update=update u=update
+
+CACHE_FILE="${XDG_CACHE_HOME:-$HOME/.cache}/dtexdoc.list"
+SOURCES_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/dmtexdoc/sources"
+
+if [[ -n "$help" ]]; then
+	echo "Usage: $0 [-u|--update]"
+	exit 1
+fi
+
+if [[ -n "$update" || ! -e "$CACHE_FILE" ]]; then
+	find -L ${$(which texdoc):h:h:h}/texmf-dist/doc/ "${(@f)$(<$SOURCES_FILE)}" \
+		-iname '*.pdf' -printf "%f\n" \
+		| sed -e 's/\..*//' | sort | uniq > $CACHE_FILE
+fi
+texdoc $(dmenu < $CACHE_FILE)

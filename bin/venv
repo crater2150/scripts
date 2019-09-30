@@ -1,0 +1,36 @@
+#!/bin/zsh
+
+zparseopts -D -E c=cdhere -cdhere=cdhere h=help -help=help
+if [[ -n $help ]]; then
+	<<-HELP
+	Usage: ${0:t} [-c] [DIR]
+
+	If DIR contains bin/activate, start a shell with that virtualenv.
+	Otherwise recursively look up virtualenvs in DIR (by looking for dirs ending
+	in "venv") and select one with fzf.
+
+	 -c, --cdhere  Change back to the current working directory instead of the
+	               virtual env's base dir
+	HELP
+	exit
+fi
+
+ORIGDIR=$PWD
+
+venvsh() {
+	cd $1
+	. bin/activate
+	if [[ -n $cdhere ]]; then
+		cd $ORIGDIR
+	fi
+	$SHELL
+}
+
+if [[ -n $1 && -e $1/bin/activate ]]; then
+	exec venvsh $1
+fi
+
+venv=$(fd -I -t d 'venv$' $1 | fzf)
+if [[ -n $venv ]]; then
+	venvsh $venv
+fi

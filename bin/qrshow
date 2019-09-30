@@ -1,0 +1,2 @@
+#!/bin/zsh
+qrencode -s 40 "$*" -o - | feh -ZF -

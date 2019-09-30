@@ -1,0 +1,40 @@
+#!/bin/zsh
+
+SCRIPTDIR=$XDG_CONFIG_HOME/re/
+
+zparseopts -D h=help -help=help d:=dir -dir:=dir n=dry_run -dry-run=dry_run e=edit -edit=edit
+if [[ -z "$@" || -n $help ]]; then
+	<<-HELP
+		re - execute regular jobs without cluttering your path
+
+		Usage: re [opts] <scriptname> [scriptopts]
+		    1. put script in $SCRIPTDIR
+		    2. run "re <scriptname>"
+		    3. ...
+		    4. PROFIT!
+
+		Options:
+			-d, --dir=DIR   change to given directory
+			-n, --dry-run   just display the script, that would be executed
+			-e, --edit      open the script in an editor
+	HELP
+	exit
+fi
+
+if [[ -n $dir ]]; then
+	cd $dir[2]
+fi
+
+if [[ -e $SCRIPTDIR/$1 ]]; then
+	if [[ -n $dry_run ]]; then
+		$PAGER -F $SCRIPTDIR/$1
+	elif [[ -n $edit ]]; then
+		$EDITOR $SCRIPTDIR/$1
+	else
+		script=$1
+		shift
+		. $SCRIPTDIR/$script "$@"
+	fi
+else
+	echo "Script \"$1\" not found"
+fi

@@ -1,0 +1,7 @@
+#!/bin/zsh
+for i in "$@"; do
+	inkscape --without-gui --file=$i --export-plain-svg=/dev/stdout \
+		| tr -d '\n' \
+		| sed -e 's!</\?tspan[^>]*>!!g' \
+		| xmllint --compress /dev/stdin --output ${i:r}.svg
+done

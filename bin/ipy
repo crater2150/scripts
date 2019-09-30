@@ -1,0 +1,20 @@
+#!/bin/zsh
+
+if [[ -n $VIRTUAL_ENV ]]; then
+	pip install ipython &>/dev/null
+else
+	cd ~/toy-projects/playground_venv/
+	. bin/activate
+fi
+
+if [[ -e $VIRTUAL_ENV/ipython_profile ]]; then
+	ipy_profile="--profile=$(<$VIRTUAL_ENV/ipython_profile)"
+fi
+
+if [[ "$1" == "pip" ]]; then
+	exec "$@"
+elif [[ $1 == "-s" ]]; then
+	exec $SHELL
+else
+	exec ipython $ipy_profile "$@"
+fi

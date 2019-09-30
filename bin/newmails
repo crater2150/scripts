@@ -1,0 +1,75 @@
+#!/bin/zsh
+
+DEFAULT=raw
+ICON=/usr/share/icons/Adwaita/48x48/actions/mail-message-new.png
+
+opt() {
+	if [ -n "$1" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+contains() {
+	arr=$1
+	value=$2
+	[[ ${${(P)arr}[(ie)$value]} -lt ${#${(P)arr}} ]]
+}
+
+zparseopts -D -E h=help -help=help \
+	r=raw -raw=raw \
+	n=number -number=number \
+	p=pretty -pretty=pretty
+
+if [ -n "$help" ]; then
+	cat <<HELP
+Usage: newmails [OPTIONS] [MAILDIR]
+
+Options:
+	-h  --help     Show this help
+	-r  --raw      Show full paths to new mail files (default)
+	-n  --number   Only show number of new mails
+	-p  --pretty   Show formatted output of new mails (TODO)
+
+HELP
+fi
+
+
+local md=${MAILDIR:-${MAIL:-$HOME/Mail}}
+local cache=${XDG_CACHE_HOME:-$HOME/.cache}/seen-mails
+
+newmails=$(find $md/ -type f -a \
+	\(  -regex ".*:2,[PRTDF]*" \) -exec realpath \{\} \;)
+
+decode(){
+	perl -CS -MEncode -ne 'print decode("MIME-Header", $_)' | \
+		sed -e 's/&/\&amp;/' -e 's/</\&lt;/' -e 's/>/\&gt;/'
+}
+
+from() { formail -zcb -xFrom | tail -n 1 | decode }
+subject() { formail -zcb -xSubject | decode }
+
+
+if opt $number; then
+	echo -n $newmails | wc -l
+	exit 0
+fi
+
+if opt $pretty; then
+	touch $cache
+	seen=$(<$cache)
+	truncate --size 0 $cache
+	notify-send --icon=$ICON "$(
+		echo -n $newmails | while read mail; do
+			if ! contains seen $mail; then
+				echo -n "<b>$(from < $mail):</b> $(subject < $mail)<br>"
+			fi
+			echo $mail >> $cache
+		done
+	)"
+	exit 0
+fi
+
+#otherwise
+echo -n $newmails

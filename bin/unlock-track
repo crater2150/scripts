@@ -1,0 +1,22 @@
+#!/bin/zsh
+
+lockstate() { pidof slimlock &>/dev/null }
+
+lockstate; was_locked=$?
+
+LOGDIR=${XDG_DATA_HOME:-$HOME/.local/share}/log/locktime
+mkdir -p $LOGDIR
+logfile=$LOGDIR/$(date --iso-8601)
+
+while true; do
+	if lockstate && [[ $was_locked -gt 0 ]]; then
+		echo "L $(date --iso-8601=minute)" >> $logfile
+		was_locked=0
+	elif ! lockstate && [[ $was_locked == 0 ]]; then
+		# change daily logfile on first unlock
+		logfile=$LOGDIR/$(date --iso-8601)
+		echo "U $(date --iso-8601=minute)" >> $logfile
+		was_locked=1
+	fi
+	sleep 60
+done

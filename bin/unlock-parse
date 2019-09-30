@@ -1,0 +1,56 @@
+#!/usr/bin/env ruby
+
+require 'time'
+
+def valid_log(lines)
+  lines.reduce(["L",true]){|acc,line|
+    if acc[1] && line[0] != acc[0] then
+      [line[0], true]
+    else
+      [nil, false]
+    end
+  }[1]
+end
+
+if ARGV[0] == '-h' then
+  puts <<~HELP
+    Usage: unlock-parse [-s] DAY...
+      -s  short output, total only
+  HELP
+  exit
+end
+
+if ARGV[0] == '-s' then
+  short=true
+  days=ARGV[1..-1]
+else
+  short=false
+  days=ARGV
+end
+
+days.empty? && days = [Date.today.iso8601]
+
+days.each do |logday|
+
+
+  path = if File.exists? logday then logday else ENV['XDG_DATA_HOME'] + '/log/locktime/' + logday end
+
+  log = File.readlines(path)
+
+  if ! valid_log(log) then puts "Invalid log file"; exit 1 end
+
+  if log.length % 2 != 0 then
+    log << "L " + Time.now.iso8601
+  end
+
+  times = log.each_slice(2).map{|e|
+    Time.parse(e[1][2..-1]) - Time.parse(e[0][2..-1])
+  }
+
+  if ! short then
+    times.map{|t| Time.at(t).utc.strftime("%H:%M:%S")}.each{|s|puts s}
+    puts "\nTotal:"
+  end
+  puts Time.at(times.sum).utc.strftime("%H:%M:%S")
+
+end

@@ -1,0 +1,11 @@
+#!/bin/zsh
+
+MDCAT=/usr/bin/mdcat
+encoding=$(file -i "$1" | sed "s/.*charset=\(.*\)$/\1/")
+if ! iconv -f $encoding <<<"" &> /dev/null; then
+	cat "$1"
+elif [[ $encoding != 'utf-8' ]]; then
+	iconv -f $encoding -t 'utf-8' < "$1" | $MDCAT /dev/stdin
+else
+	$MDCAT $1
+fi

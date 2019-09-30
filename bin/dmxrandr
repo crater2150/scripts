@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+
+require 'xrandr'
+require 'dmenu'
+
+menu = Dmenu.new
+menu.case_insensitive = true
+menu.lines = 20
+
+outputs = Xrandr::Parser.new.parse[1].group_by(&:connected)
+
+menu.items = (outputs[true] + outputs[false]).map{
+  |o| Dmenu::Item.new(o.name + (o.connected ? ' (connected)' : ''), o)
+}
+menu.prompt = "output:"
+output = menu.run.value
+
+menu.items = output.modes.map{
+  |mode|Dmenu::Item.new(mode.resolution, {mode: mode.resolution})
+}
+menu.items << Dmenu::Item.new("off", {off: true})
+
+menu.prompt = "Current resolution: #{output.resolution}"
+mode = menu.run.value
+
+unless mode[:off]
+  menu.items = [:"left-of", :"right-of", :"above", :"below"].flat_map{|dir|
+    outputs[true].reject{|o| o == output}.map{|out| [dir,out]}
+  }.map{|setting|
+    Dmenu::Item.new(setting[0].to_s.gsub('-',' ') + " " + setting[1].name,
+                    {setting[0] => setting[1].name})
+  }
+  menu.items << Dmenu::Item.new("don't change", {})
+  menu.prompt = "Select position:"
+  mode.merge! menu.run.value
+end
+control = Xrandr::Control.new
+control.configure(output, mode)
+control.apply!

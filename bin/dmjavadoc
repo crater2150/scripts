@@ -1,0 +1,66 @@
+#!/usr/bin/env ruby
+
+require 'dmenu'
+
+JAVA_DOC_LOCATION = "/usr/share/doc/api"
+JAVAFX_DOC_LOCATION = "/usr/share/doc/javafx-sdk-docs-*"
+
+USER_DOC_LOCATION = (ENV['XDG_DATA_HOME'] || ENV['HOME'] + '/.local/share') + '/javadoc/*'
+
+class DocIndex
+  attr_reader :items
+
+  def initialize(path)
+    @items = []
+    find_entries(path)
+  end
+
+  private
+
+  def gen_candidates(dir)
+    Dir.entries(dir).reject {|e| e == '.' ||
+                             e == '..' ||
+                             e == 'class-use' ||
+                             e == 'src-html' ||
+                             (e =~ /^[a-z].*\..*/ && e != 'package-summary.html')}
+  end
+
+  def find_entries(dir, path = [])
+    candidates = gen_candidates(dir)
+    candidates.each do |entry|
+      if entry == "package-summary.html"
+        @items << Dmenu::Item.new(path.join(?.),  dir + ?/ + entry)
+      elsif entry.end_with? ".html"
+        @items << Dmenu::Item.new(
+          path.join(?.) + ?. + File.basename(entry, '.html'),
+          dir + ?/ + entry
+        )
+      elsif File.directory?(dir + ?/ + entry)
+        find_entries(dir + ?/ + entry, path + [entry])
+      end
+    end
+  end
+end
+
+
+user_libs = Dir.glob(USER_DOC_LOCATION)
+java_folder = Dir.glob(JAVA_DOC_LOCATION).last
+jfx_folder = Dir.glob(JAVAFX_DOC_LOCATION).last + "/html"
+
+
+libmenu = Dmenu.new
+libmenu.items = [
+  Dmenu::Item.new("Java Standard Library (std)", java_folder),
+  Dmenu::Item.new("javafx", jfx_folder)
+] + user_libs.map{|f| Dmenu::Item.new(File.basename(f), f)}
+
+libmenu.case_insensitive = true
+libmenu.prompt = "Library:"
+libmenu.lines = 20
+
+menu = Dmenu.new
+menu.items = DocIndex.new(libmenu.run.value).items
+menu.case_insensitive = true
+menu.prompt = "Javadoc:"
+menu.lines = 20
+system("xdg-open #{menu.run.value}")

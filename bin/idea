@@ -1,0 +1,6 @@
+#!/bin/zsh
+unset JAVA_HOME
+source /etc/profile.d/11_oracle-jdk.sh
+export IBUS_ENABLE_SYNC_MODE=1
+export XMODIFIERS=""
+exec $(ls ${XDG_DATA_HOME:-~/.local/share}/idea-IU-*/bin/idea.sh | sort | tail -n 1)

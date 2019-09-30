@@ -1,0 +1,91 @@
+#!/bin/zsh
+
+dmenu_opts=("" "-i")
+replace=("-r")
+
+zparseopts -E -D -K -help=help \
+	a=artist -artist=artist \
+	b=album -album=album \
+	t=title -title=title \
+	j=jump -jump=jump \
+	r=replace -replace=replace R=replace -no-replace=replace \
+	o:=dmenu_opts -dmenu-opts:=dmenu_opts \
+	h:=host -host:=host \
+	p:=port -port:=port
+	
+if [ -n "$help" ]; then
+	<<-HELP
+	dmpc: manage mpd playlist with dmenu
+
+	Usage: dmpc {-a|-b|-t|-j} [OPTION]
+
+	Options:
+	  -a, --artist      search for artist
+	  -b, --album       search for album
+	  -t, --title       search for title
+	  -j, --jump        jump to song in current playlist (requires rofi)
+			    (if given in addition to searches, jumps after changes)
+	  
+	  -r, --replace     replace current playlist
+	  -R, --no-replace  do not replace current playlist
+	  -o, --dmenu-opts  additional options for dmenu
+
+	  -h, --host        MPD host server
+	  -p, --port        server port
+	
+	dmpc lets you select all tracks from an artist or album or a single track.
+	HELP
+	exit 0
+fi
+
+if [[ -z "$artist" && -z "$album" && -z "$title" ]]; then
+	<<-ERR
+	At least one of -a, -b, -t or -j must be given. See --help for more information.
+	ERR
+	exit 1
+fi
+
+typeset -a queries
+
+mpc_() {
+	mpc $=host $=port "$@"
+}
+
+dmenu_search() {
+	local type=$1
+	mpc_ list $type "${queries[@]}" | dmenu ${=dmenu_opts[2]}
+}
+
+add_query() {
+	local type=$1
+	local query=$2
+	
+	queries+=$type
+	queries+=$query
+}
+
+if [[ -n $artist ]]; then
+        add_query albumartist "$(dmenu_search artist)"
+fi
+
+if [[ -n $album ]]; then
+        add_query album "$(dmenu_search album)"
+fi
+
+if [[ -n $title ]]; then
+        add_query title "$(dmenu_search title)"
+fi
+
+if [[ ${replace[1]} == "-r" || "${replace[1]}" == "--replace" ]]; then
+	mpc_ clear
+fi
+
+
+if [[ ${#queries} -gt 0 ]]; then
+	mpc_ search "${queries[@]}" | mpc_ add 
+	mpc_ play
+fi
+
+if [[ -n $jump ]]; then
+	mpc play "$(mpc playlist | rofi -dmenu -format d)"
+fi

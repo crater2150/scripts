@@ -1,0 +1,20 @@
+#!/bin/zsh
+zparseopts -D -E -ext:=ext e:=ext h=help -help=help
+
+if [[ -n $help ]]; then
+	<<-HELP
+	Usage: ${0:t} [-e EXT | PATTERN] [DIR...]
+
+	Find files with fd, show them with fzf and open selected files via xdg-open.
+
+	Either -e with a file extension or a pattern can be given to narrow search.
+	Any further arguments are passed to fd as search path.
+	HELP
+	exit
+fi
+
+if [[ -n $ext ]]; then
+	fd -e ${ext[2]} . "$@"
+else
+	fd "$@"
+fi | fzf | xargs --null xdg-open

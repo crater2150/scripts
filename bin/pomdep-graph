@@ -1,0 +1,74 @@
+#!/bin/zsh
+
+zparseopts -D -K -E h=help -help=help -renderer:=renderer r:=renderer \
+	f:=filter -filter:=filter \
+	o:=output -output:=output \
+	l:=leaf_color -leaf-color:=leaf_color \
+	G=graph_only -graph-only=graph_only
+
+renderer=${renderer[2]:-dot}
+output=${output[2]:-deps.png}
+leaf_color=${leaf_color[2]:-green}
+
+if [[ $output == "-" ]]; then output=/dev/stdout; fi
+if [[ -n $graph_only ]]; then
+	renderer=cat
+	output=/dev/stdout
+fi
+
+if [[ -z "$2" ]]; then
+	echo "Usage: $0 [options] POM_FILE..."
+	echo
+	echo "Options:"
+	echo "  -f, --filter=TEXT       only show dependencies with TEXT in their group id"
+	echo "  -r, --renderer=PROGRAM  use PROGRAM for rendering. May contain additional parameters"
+	echo "                          e.g. -r \"dot -Goverlap=false\""
+	echo "                          default: dot -Tpng"
+	echo "  -o, --output=FILE       output to FILE, defaults to deps.png"
+	echo "  -l, --leaf-color=COLOR  color of leaf nodes (packages without dependencies)"
+	echo "  -G, --graph-only        output unlayouted graph code, overrides -r and -o"
+	echo "                          equivalent to \"-r cat -o /dev/stdout\""
+
+fi
+
+if [[ -n $filter ]]; then
+	DEP_PATH="//dependencies//groupId[contains(text(),'${filter[2]}')]/following-sibling::artifactId/text()"
+else
+	DEP_PATH="//dependencies//groupId/following-sibling::artifactId/text()"
+fi
+
+PKG_PATH="/project/artifactId/text()"
+
+xpath() {
+	xmllint --shell <(sed -e "s/xmlns=/ignore=/" $2) <<<"cat $1" | grep -v '^\(/ >\| --\)'
+}
+
+remove-disconnected() {
+	gvpr -c "N[$.degree==0]{delete(NULL, $)}" "$@"
+}
+
+color-leaf-deps() {
+	gvpr -c "N[$.outdegree==0]{$.color ='$1'}"
+}
+
+graph-from-poms() {
+	echo 'digraph deps {'
+
+	for pom in "$@"; do
+		pkg=$(xpath $PKG_PATH $pom)
+		deps=($(xpath $DEP_PATH $pom | grep '^[a-zA-Z]'))
+
+			echo "  \"$pkg\""
+		for i in $deps; do
+			echo "  \"$pkg\" -> \"$i\""
+		done
+	done
+
+	echo '}'
+}
+
+render() {
+	$=renderer > $output
+}
+
+graph-from-poms "$@" | remove-disconnected | color-leaf-deps $leaf_color | render

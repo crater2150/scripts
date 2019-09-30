@@ -1,0 +1,52 @@
+#!/usr/bin/env ruby
+
+require 'dmenu'
+
+JAVA_DOC_LOCATION = "/home/crater2150/manuals/scala-*"
+
+USER_DOC_LOCATION = (ENV['XDG_DATA_HOME'] || ENV['HOME'] + '/.local') + '/scaladoc/*'
+
+class DocIndex
+  attr_reader :items
+
+  def initialize(path)
+    @items = []
+    find_entries(path)
+  end
+
+  private
+
+  def gen_candidates(dir)
+    Dir.entries(dir).reject {|e| e == '.' ||
+                             e == '..' ||
+                             e == 'class-use' ||
+                             e == 'src-html' ||
+                             (e =~ /^[a-z].*\..*/ && e != 'package-summary.html')}
+  end
+
+  def find_entries(dir, path = [])
+    candidates = gen_candidates(dir)
+    candidates.each do |entry|
+      if entry == "package-summary.html"
+        @items << Dmenu::Item.new(path.join(?.),  dir + ?/ + entry)
+      elsif entry.end_with? ".html"
+        @items << Dmenu::Item.new(
+          path.join(?.) + ?. + File.basename(entry, '.html'),
+          dir + ?/ + entry
+        )
+      elsif File.directory?(dir + ?/ + entry)
+        find_entries(dir + ?/ + entry, path + [entry])
+      end
+    end
+  end
+end
+
+
+scala_folder = Dir.glob(JAVA_DOC_LOCATION).last + "/api/scala-library/"
+
+menu = Dmenu.new
+menu.items = DocIndex.new(scala_folder).items
+menu.case_insensitive = true
+menu.prompt = "Javadoc:"
+menu.lines = 20
+system("xdg-open #{menu.run.value}")

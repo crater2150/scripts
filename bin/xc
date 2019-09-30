@@ -1,0 +1,83 @@
+#!/bin/zsh
+
+# install this program with the name xc and symlink it as xs.
+# xc will use the clipboard selection, while xs while use the primary selection
+
+source $(which need)
+need xclip
+
+function get_primary() { xclip -o -selection primary }
+function get_clipboard() { xclip -o -selection clipboard }
+function set_primary() { xclip -i -selection primary }
+function set_clipboard() { xclip -i -selection clipboard }
+function show_both() {
+	printf "\e[1;94mPrimary\e[0m\n"
+	get_primary
+	echo
+	printf "\e[1;94mClipboard\e[0m\n"
+	get_clipboard
+}
+
+function read_both() {
+	need pee moreutils
+	pee "xclip -i -selection primary" "xclip -i -selection clipboard"
+}
+
+function common() {
+	cmd=$1
+	getc=$2
+	setc=$3
+	shift 3
+	case "$cmd" in
+		"read") $setc;;
+		"readboth") read_both ;;
+		"showboth") show_both ;;
+		"sed") $getc | sed -e "$@" | $setc; $getc;;
+		"pipe") $getc | "$@" | $setc; $getc;;
+		"edit") need vipe moreutils; $getc | vipe | $setc; $getc;;
+		"") $getc ;;
+		*) <<-HELP
+			Usage: xc [COMMAND]
+			       xc fromxs|toxs
+			       xs [COMMAND]
+			       xs fromxc|toxc
+			
+			The used X selection is determined by the name the program is called as: 
+			    xc: clipboard (Ctrl-C / Ctrl-V)
+			    xs: primary selection (middle mouse button)
+			For showboth/readboth, the action is done for both selections.
+
+			Commands:
+			    show/showboth:  show contents of clipboard (default if no command given)
+			    read/readboth:  store input to clipboard 
+			    sed:            modify contents using a sed expression
+			    pipe:           modify contents by piping through a command
+			    edit:           edit clipboard contents using \$EDITOR
+
+			    fromxs/toxs:    xc only: copy contents from or to primary selection
+			    fromxc/toxc:    xs only: copy contents from or to clipboard
+		HELP
+		;;
+	esac
+}
+
+cmd=$1
+[[ -n $1 ]] && shift
+
+case "${0:t}" in
+	xc)
+		case "$cmd" in
+			"fromxs"|"fromXS") get_primary | set_clipboard ;;
+			"toxs"|"toXS") get_clipboard | set_primary ;;
+			*) common "$cmd" get_clipboard set_clipboard "$@";;
+		esac
+		;;
+	xs)
+		case "$cmd" in
+			"fromxc"|"fromXC") get_clipboard | set_primary ;;
+			"toxc"|"toXC") get_primary | set_clipboard ;;
+			*) common "$cmd" get_primary set_primary "$@";;
+		esac
+		;;
+esac
+

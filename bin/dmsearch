@@ -1,0 +1,187 @@
+#!/bin/zsh
+emulate -L zsh
+
+SYSTEM_CONFIG_PATH='/etc/dmsearch'
+CONFIG_PATH="$HOME/.config/dmsearch"
+CACHE_PATH="$HOME/.cache/dmsearch"
+mkdir -p "${CACHE_PATH}"
+
+# required software
+
+depend() {
+	local script="$1"; shift;
+	local missing
+	local i
+
+	for i in "$@"; do
+		type "$i" &>/dev/null || {
+			echo >&2 "$i is required for ${script}. Please install it"
+			missing=1
+		}
+	done
+	[ -n "$missing" ] && exit 1
+}
+
+depend dmsearch \
+	rofi \
+	mv \
+	tail \
+	cut
+
+
+################################################################################
+# helpers
+################################################################################
+
+urlencode() {
+        setopt extendedglob
+	input=$(</dev/stdin)
+	# by jkramer, source: http://stackoverflow.com/a/187853/928769
+        echo "${${(j: :)input}//(#b)(?)/%$[[##16]##${match[1]}]}"
+}
+
+# define a module option
+# Parameters:
+#  1: module id
+#  2: option name
+#  3: default value
+#  4: description
+optdef() {
+	typeset -A -g opts_${1}
+	local optname="opt_${1}_${2}"
+	eval "if [ -z \"\$${optname}\" ]; then
+		${optname}=\"$3\";
+	fi"
+	eval "opts_${1}[$2]=\"${4:-"undocumented"}\""
+}
+
+# get history for a search
+# parameters:
+#  1: search, for which to get history
+dmhist() {
+	local search=$1
+	local dmhistfile="$CACHE_PATH/history_$search"
+	if [[ -e "$dmhistfile" ]] then
+		<"$dmhistfile"
+	else
+		</dev/null
+	fi
+}
+
+# add history for a search.
+#
+# Older entries can be truncated by specifying the maximum history length.
+#
+# parameters:
+#  1: search, for which to add history
+#  2: the new entry for the history file
+#  3: (optional) maximum number of history items to store
+dmhistadd() {
+	local search=$1
+	local line=$2
+	[[ -z "$2" ]] && return
+	local truncate=${3:-"+0"}
+	local dmhistfile="$CACHE_PATH/history_$search"
+	echo "$line" >> "$dmhistfile"
+	mv "$dmhistfile" "${dmhistfile}.tmp"
+	tail -n ${truncate} "${dmhistfile}.tmp" > "${dmhistfile}"
+	rm "${dmhistfile}.tmp"
+}
+
+# freetext rofi with a default value.
+#
+# When called, opens a rofi with only one choice. Pressing enter without any 
+dmdefault() {
+	value=$(echo "$2" | rofi -dmenu -l 1 -p "$1" -sort-method fzf)
+	if [[ "$value" == "$2" ]]; then
+		$=3
+	else
+		echo "$value"
+	fi
+}
+
+################################################################################
+# plugin loading
+################################################################################
+
+# system plugins are loaded first, so they can be overridden by user plugins
+for i in "(${SYSTEM_CONFIG_PATH}/searchers/"*(N) \
+		"${CONFIG_PATH}/searchers/"*(N); do
+	. "$i"
+done
+
+################################################################################
+# Configurable Options
+################################################################################
+
+# querystring
+
+SERCHILO="https://www.findfind.it/u/crater2150?query="
+
+# some default values. all of them can be overridden by rc.zsh
+typeset -A searches
+searches=( g Google w Wikipedia )
+webbrowser_cmd="xdg-open"
+
+[[ -e "${SYSTEM_CONFIG_PATH}/rc.zsh" ]] && . "${SYSTEM_CONFIG_PATH}/rc.zsh"
+[[ -e "${CONFIG_PATH}/rc.zsh" ]] && . "${CONFIG_PATH}/rc.zsh"
+
+################################################################################
+# main script
+################################################################################
+
+zparseopts -D -E -help=help h=help
+
+if [ -n "$help" ]; then
+	<<-HELP
+		dmsearch [-h]
+		Opens dmenu and lets you run web searches
+		
+		configured searches:
+	HELP
+
+	for k in ${(k)searches}; do
+		echo "  ${k}:\t${(Q)searches[$k]}";
+	done
+
+	<<-HELP
+
+		defined module options:
+	HELP
+	for k in ${(k)searches}; do
+		eval "if [ \"\${#opts_$k}\" -gt 0 ]; then
+			echo \"  Module ${(Q)searches[$k]}:\";
+			for o in \${(k)opts_${k}}; do
+				echo \"    opt_${k}_\${o}: \${opts_${k}[\$o]}\";
+			done
+		fi"
+	done
+	exit 0
+fi
+
+# start dmenu
+coproc dmenu -i -l 20 -p 'serchilo widget:'
+
+# generate menu elements
+for i in ${(k)searches}; do print -p "${i} - ${searches[$i]}"; done
+
+# close coproc stdin
+exec 5>&p 6<&p; coproc exit; exec 5>&-
+
+# get dmenu result
+search=$(read -eu 6 | cut -d" " -f1)
+
+[[ -z "$search" ]] && exit 1 #user aborted
+
+
+if which "s_${search}" &>/dev/null; then
+	qs=$(s_${search})
+else
+	qs="${SERCHILO}${search}"
+	result=$(dmhist "$search" | dmenu -i -l 20 -p "params to $search")
+	dmhistadd "$search" "$result"
+	qs+="+$(echo $result| urlencode)"
+fi
+
+echo ${webbrowser_cmd} $qs
+${webbrowser_cmd} $qs

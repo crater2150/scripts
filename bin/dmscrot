@@ -1,0 +1,30 @@
+#!/usr/bin/env ruby
+
+require 'dmenu'
+
+def run_menu(items, prompt)
+	menu = Dmenu.new
+	menu.case_insensitive = true
+	menu.lines = items.length
+	menu.items = items
+	menu.prompt = prompt
+	menu.run.value
+end
+modes = [
+	Dmenu::Item.new('multidisp', '-m'),
+	Dmenu::Item.new('select', '-s'),
+	Dmenu::Item.new('focused', '-u -d 1'),
+	Dmenu::Item.new('normal', '')
+]
+
+actions = [
+	Dmenu::Item.new('move to screenshots', 'mv $f ~/media/screenshots'),
+	Dmenu::Item.new('view image', 'xdg-open $f'),
+	Dmenu::Item.new('make draggable', 'dragon -x $f'),
+	Dmenu::Item.new('nothing', 'true')
+]
+
+mode = run_menu(modes, "Screenshot type")
+action = run_menu(actions, "and then")
+
+system('scrot', mode, '-e', action)
