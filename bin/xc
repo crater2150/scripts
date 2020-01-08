@@ -30,12 +30,13 @@ function common() {
 	shift 3
 	case "$cmd" in
 		"read") $setc;;
+		"clear") echo -n | $setc;;
 		"readboth") read_both ;;
 		"showboth") show_both ;;
 		"sed") $getc | sed -e "$@" | $setc; $getc;;
 		"pipe") $getc | "$@" | $setc; $getc;;
 		"edit") need vipe moreutils; $getc | vipe | $setc; $getc;;
-		"") $getc ;;
+		"") if [[ -t 0 ]]; then $getc; else $setc; fi;;
 		*) <<-HELP
 			Usage: xc [COMMAND]
 			       xc fromxs|toxs
@@ -49,7 +50,7 @@ function common() {
 
 			Commands:
 			    show/showboth:  show contents of clipboard (default if no command given)
-			    read/readboth:  store input to clipboard 
+			    read/readboth:  store input to clipboard (default if stdin is not a terminal)
 			    sed:            modify contents using a sed expression
 			    pipe:           modify contents by piping through a command
 			    edit:           edit clipboard contents using \$EDITOR
