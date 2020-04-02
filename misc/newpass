@@ -1,0 +1,77 @@
+#!/bin/zsh
+
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+
+PASSWORD_STORE_DIR=${PASSWORD_STORE_DIR:-$HOME/.password-store}
+
+if [[ ! -e $XDG_CONFIG_HOME/newpass.sh ]]; then
+	> $XDG_CONFIG_HOME/newpass.sh <<-CONFIG
+		#Sample config file. Settings that are commented out are optional.
+		
+		#enter domain of your mails. required.
+		MAILHOST="my.domain.for.mails"
+
+		# password will be generated with a length of (RANDOM % min + min), i.e.
+		# between this minimum and twice that length
+		#MIN_PASSWORD_LENGTH=20
+
+		# prepend generated mail address with this string
+		#MAIL_PREFIX="account-"
+		
+		#number of seconds for the password to stay in the clipboard
+		#comment out to disable clearing
+		CLEAR_CLIPBOARD_SECS=10
+
+		# pass store folder to use
+		#PASS_FOLDER=web
+	CONFIG
+
+	error "config not found."
+	echo "created a config file at $XDG_CONFIG_HOME/newpass.sh"
+	echo "Please set it up"
+	exit 1
+fi
+
+. $XDG_CONFIG_HOME/newpass.sh
+
+if [[ -z $MAILHOST ]]; then
+	error "MAILHOST not set in config file. Aborting."
+	exit 1
+fi
+
+
+newpass=$(pwgen -sny $((RANDOM % MIN_PASSWORD_LENGTH + MIN_PASSWORD_LENGTH)) -1)
+
+if [[ -n "$1" ]]; then
+	domain="$1"
+else
+	echo -n "Enter domain: "; read domain
+fi
+
+servicename=$(echo $domain | awk -F. '{print $(NF-1)}')
+email="$MAIL_PREFIX$servicename@$MAILHOST"
+
+echo "Enter account name or leave blank to use proposed name: $email"
+echo -n "Name: "; read accname
+if [[ -z $accname ]]; then
+	accname="$email"
+	emailentry=$'\nemail: '"$email"
+else
+	echo -n "Add proposed email? "; read -q && emailentry=$'\nemail: '"$email"
+fi
+
+pass insert -m $PASS_FOLDER${PASS_FOLDER:+/}${domain} <<-PASS
+$newpass
+user: $accname$emailentry
+PASS
+
+echo "Generated password:"
+echo $newpass
+echo $newpass | xclip -i -selection primary
+echo $newpass | xclip -i -selection clipboard
+
+if [[ $CLEAR_CLIPBOARD_SECS ]]; then
+	sleep $CLEAR_CLIPBOARD_SECS
+	xclip -i -selection clipboard </dev/null
+	xclip -i -selection primary </dev/null
+fi
