@@ -1,2 +1,6 @@
 #!/bin/zsh
-qrencode -s 40 "$*" -o - | feh -ZF -
+if [[ -z "$1" ]]; then
+	qrencode -s 40 -o -
+else
+	qrencode -s 40 "$*" -o -
+fi | feh -ZF -
