@@ -42,7 +42,7 @@ for prog in $@; do
 		fi
 	done
 	if [[ -e $install_path/${prog:t} && ! $force ]]; then
-		error "$prog already exists at $install_path. Skipping."
+		warning "$prog already exists at $install_path. Skipping."
 	else
 		ln -fsr $prog $install_path
 	fi
