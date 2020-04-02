@@ -1,0 +1,8 @@
+#!/bin/zsh
+file_id=$(head -c 12 /dev/urandom|base64| tr '/' '+')
+file_name=${2:-${1:t}}
+
+ssh qwerty mkdir -p ~/share/$file_id/
+rsync -P $1 qwerty:share/$file_id/$file_name
+ssh qwerty ~/update-www-perms.sh
+echo https://share.qwertyuiop.de/$file_id/$file_name

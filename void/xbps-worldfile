@@ -1,0 +1,66 @@
+#!/bin/zsh
+
+zparseopts -D -E h=help -help=help d=desc -describe=desc
+
+function not-in-left() {
+	awk 'NR==FNR{a[$0]=1;next}!a[$0]' "$@"
+}
+
+function first-col() {
+	cut -d$'\t' -f1
+}
+
+function info() {
+	printf "$@" >&2
+}
+
+if [[ -n $help ]]; then
+	echo 'Usage: xbps-worldfile [-d]'
+	echo 'Edit a list of manually installed packages in your editor and update the pkgdb'
+	echo
+	echo '  -d, --describe    Query short description for packages and display it in the list (slow)'
+	exit
+fi
+
+TMPFILE=$(mktemp -p ${TMPDIR:-/tmp} xbps-worldfile.XXXXXXXXXX)
+
+if [[ -n $desc ]]; then
+	info "Generating worldfile with descriptions\n"
+	xbps-query -m | while read pkg; do
+		info .
+		printf "%-40s\t%s\n" $pkg "$(xbps-query -p short_desc $pkg)"
+	done > $TMPFILE
+else
+	xbps-query -m > $TMPFILE
+fi
+
+EDITFILE=$(mktemp -p ${TMPDIR:-/tmp} xbps-worldfile.edit.XXXXXXXXXX)
+cp $TMPFILE $EDITFILE
+
+$EDITOR $EDITFILE
+
+autopkgs=$(not-in-left $EDITFILE $TMPFILE | first-col)
+manualpkgs=$(not-in-left $TMPFILE $EDITFILE | first-col)
+rm $TMPFILE $EDITFILE
+
+if [[ -z $manualpkgs && -z $autopkgs ]]; then
+	info "No changes.\n"
+	exit
+fi
+info "\e[92minstalling:\e[0m\n${manualpkgs}\n\n"
+info "\e[93mchanging to auto:\e[0m\n${autopkgs}\n\n"
+
+
+info "\e[1mContinue? [y/n]:"
+if ! read -q; then exit; fi
+
+if [[ -n $manualpkgs ]]; then
+	xbps-install $=manualpkgs
+	xbps-pkgdb -m manual $=manualpkgs
+fi
+
+if [[ -n $autopkgs ]]; then
+	xbps-pkgdb -m auto $=autopkgs
+	info "\e[93mcleaning orphans\e[0m"
+	xbps-remove -Ro
+fi

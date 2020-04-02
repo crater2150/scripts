@@ -1,0 +1,21 @@
+#!/bin/zsh
+unset JAVA_HOME
+source /etc/profile.d/11_oracle-jdk.sh
+export IBUS_ENABLE_SYNC_MODE=1
+export XMODIFIERS=""
+
+dotfiles=( $HOME/.* )
+project_dirs=(
+	$HOME/learning
+	$HOME/teaching
+	$HOME/projects
+	$HOME/sandbox
+	$HOME/sources
+	$HOME/toy-projects
+	$HOME/work
+	)
+
+exec firejail \
+	--whitelist=${^dotfiles} \
+	--whitelist=${^project_dirs} \
+	$(ls ${XDG_DATA_HOME:-~/.local/share}/idea-IU-*/bin/idea.sh | sort | tail -n 1)

@@ -1,0 +1,6 @@
+#!/bin/zsh
+time=$1; shift
+(
+echo "DISPLAY=$DISPLAY sm \"$@\"" | at $time
+) &>/dev/null
+echo "Alerting at $time on screen $DISPLAY"

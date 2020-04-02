@@ -1,0 +1,9 @@
+#!/bin/zsh
+for candidate in x-terminal-emulator xdg-terminal alacritty urxvt xterm; do
+	if which $candidate &> /dev/null; then
+		echo $candidate
+		exit 0
+	fi
+done
+echo "no terminal found" >&2
+exit 1

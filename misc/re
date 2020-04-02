@@ -27,9 +27,9 @@ fi
 
 if [[ -e $SCRIPTDIR/$1 ]]; then
 	if [[ -n $dry_run ]]; then
-		$PAGER -F $SCRIPTDIR/$1
+		${PAGER:-less} -F $SCRIPTDIR/$1
 	elif [[ -n $edit ]]; then
-		$EDITOR $SCRIPTDIR/$1
+		${EDITOR:-vim} $SCRIPTDIR/$1
 	else
 		script=$1
 		shift

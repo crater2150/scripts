@@ -1,4 +1,7 @@
 #!/bin/zsh
+
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+
 emulate -L zsh
 
 SYSTEM_CONFIG_PATH='/etc/dmsearch'
@@ -7,21 +10,6 @@ CACHE_PATH="$HOME/.cache/dmsearch"
 mkdir -p "${CACHE_PATH}"
 
 # required software
-
-depend() {
-	local script="$1"; shift;
-	local missing
-	local i
-
-	for i in "$@"; do
-		type "$i" &>/dev/null || {
-			echo >&2 "$i is required for ${script}. Please install it"
-			missing=1
-		}
-	done
-	[ -n "$missing" ] && exit 1
-}
-
 depend dmsearch \
 	rofi \
 	mv \
@@ -32,13 +20,6 @@ depend dmsearch \
 ################################################################################
 # helpers
 ################################################################################
-
-urlencode() {
-        setopt extendedglob
-	input=$(</dev/stdin)
-	# by jkramer, source: http://stackoverflow.com/a/187853/928769
-        echo "${${(j: :)input}//(#b)(?)/%$[[##16]##${match[1]}]}"
-}
 
 # define a module option
 # Parameters:

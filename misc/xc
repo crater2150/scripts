@@ -3,8 +3,8 @@
 # install this program with the name xc and symlink it as xs.
 # xc will use the clipboard selection, while xs while use the primary selection
 
-source $(which need)
-need xclip
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+depend xclip
 
 function get_primary() { xclip -o -selection primary }
 function get_clipboard() { xclip -o -selection clipboard }
@@ -19,7 +19,7 @@ function show_both() {
 }
 
 function read_both() {
-	need pee moreutils
+	depend pee
 	pee "xclip -i -selection primary" "xclip -i -selection clipboard"
 }
 
@@ -35,7 +35,7 @@ function common() {
 		"showboth") show_both ;;
 		"sed") $getc | sed -e "$@" | $setc; $getc;;
 		"pipe") $getc | "$@" | $setc; $getc;;
-		"edit") need vipe moreutils; $getc | vipe | $setc; $getc;;
+		"edit") depend vipe; $getc | vipe | $setc; $getc;;
 		"") if [[ -t 0 ]]; then $getc; else $setc; fi;;
 		*) <<-HELP
 			Usage: xc [COMMAND]

@@ -1,0 +1,23 @@
+#!/bin/zsh
+
+CLEAR="\e[2K\e[${COLUMNS}D"
+printc() {
+	printf "$CLEAR\e[32m%s\e[0m" "$*" >&2
+}
+
+revdep() {
+	printc "> $1"
+	parents=$(xbps-query -X "$1")
+
+	if [[ -z $parents ]]; then
+		echo $1
+	else
+		while IFS= read -r i; do
+			revdep $i
+		done <<<"$parents"
+	fi
+}
+
+result=$(revdep "$1")
+printc
+sort -u <<<"$result"

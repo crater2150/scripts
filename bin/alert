@@ -1,3 +1,0 @@
-#!/bin/zsh
-time=$1; shift
-echo "DISPLAY=:0.0 sm \"$@\"" | at $time

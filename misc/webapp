@@ -1,10 +1,12 @@
 #!/bin/zsh
+
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+
 profile="${0:t}"
 
-need firefox
-need firejail
+depend firefox firejail
 
 mkdir -p $HOME/.jails/firefox-$profile
 
 exec firejail --private=$HOME/.jails/firefox-$profile \
-	firefox --no-remote "$@"
+	firefox --class $profile --no-remote "$@"

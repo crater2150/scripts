@@ -1,0 +1,10 @@
+#!/bin/zsh
+if [[ "$1" == "-S" ]]; then
+	shift
+	server=${1};
+	shift
+else
+	server="qwerty";
+fi
+
+exec alacritty -t Weechat -e tmux new-session mosh "${server}" -- tmux attach "$@" -t weechat
