@@ -22,12 +22,16 @@ succeed() { result $c_success $@ }
 error() { echo -n "  "; fail $@ }
 warning() { echo -n "  "; warn $@ }
 
+exists() {
+	type "$1" &>/dev/null
+}
+
 depend() {
 	local missing
 	local i
 
 	for i in "$@"; do
-		type "$i" &>/dev/null || {
+		exists "$i" || {
 			echo >&2 " $c_fail Missing dependency: $i. Please install it"
 			missing=1
 		}
