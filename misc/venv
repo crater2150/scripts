@@ -1,7 +1,16 @@
 #!/bin/zsh
 
-zparseopts -D -E c=cdhere -cdvenv=cdvenv h=help -help=help n=newvenv -new=newvenv t=tmsu -tmsu=tmsu
-if [[ -n $help ]]; then
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+
+zparseopts -D -E \
+	c=cdvenv -cdvenv=cdvenv \
+	h=help -help=help \
+	n=newvenv -new=newvenv \
+	t=tmsu -tmsu=tmsu \
+	p=pyenv -pyenv=pyenv \
+	f=find -find=find
+
+if [[ $help ]]; then
 	<<-HELP
 	Usage: ${0:t} [-c] [DIR]
 	       ${0:t} -t
@@ -10,9 +19,14 @@ if [[ -n $help ]]; then
 	Otherwise recursively look up virtualenvs in DIR (by looking for dirs ending
 	in "venv") and select one with fzf.
 
+	OPTIONS:
 	 -c, --cdvenv  Change to the venv directory instead of going back to the 
-	               current working directory
-	 -t, --tmsu    list only venvs in a directory with tmsu tag lang=python
+				   current working directory (not for pyenv virtualenvs)
+	 -t, --tmsu    list only venvs named "venv" in a directory with tmsu tag lang=python
+	 -p, --pyenv   Use pyenv virtualenvs
+	 -f, --find    Search for virtualenvs by looking for directories ending with 'venv'
+
+	 If neither -p or -f are given, the default behaviour is to use both
 	HELP
 	exit
 fi
@@ -28,6 +42,14 @@ venvsh() {
 	$SHELL
 }
 
+pyenvsh() {
+	export PYENV_VIRTUALENV_DISABLE_PROMPT=1
+	eval "$(pyenv init -)"
+	eval "$(pyenv virtualenv-init -)"
+	pyenv activate "$1"
+	$SHELL
+}
+
 if [[ -n $tmsu ]]; then
 	venv=$(
 		for i in $(tmsu files --directory lang=python); do
@@ -40,7 +62,7 @@ if [[ -n $tmsu ]]; then
 	fi
 fi
 
-if [[ -n $newvenv ]]; then
+if [[ $newvenv ]]; then
 	python -mvenv ${1:-venv}
 	exec venvsh ${1:-venv}
 fi
@@ -49,7 +71,23 @@ if [[ -n $1 && -e $1/bin/activate ]]; then
 	exec venvsh $1
 fi
 
-venv=$(fd -I -t d 'venv$' $1 | fzf)
+pyenvs() {
+	if exists pyenv && pyenv commands | grep -q 'virtualenvs'; then
+		pyenv virtualenvs --bare --skip-aliases | sed -e 's/^/pyenv!/'
+	fi
+}
+
+if [[ $pyenv && ! $find ]]; then
+	venv=$(pyenvs | fzf)
+elif [[ ! $pyenv && $find ]]; then
+	venv=$(fd -I -t d 'venv$' $1 | fzf)
+else
+	venv=$(cat <(fd -I -t d 'venv$' $1) <(pyenvs) | fzf)
+fi
 if [[ -n $venv ]]; then
-	exec venvsh $venv
+	if [[ $venv =~ pyenv\!* ]]; then
+		exec pyenvsh ${venv##pyenv!}
+	else
+		exec venvsh $venv
+	fi
 fi
