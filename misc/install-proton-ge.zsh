@@ -25,7 +25,7 @@ installed_tags="$COMPTOOLSDIR/proton-ge-tags"
 if grep -q "^$release_tag\$" "$installed_tags"; then
 	echo "${fg_bold[yellow]}Current release $release_tag already installed.$reset_color"
 else
-	echo $release_tag >> .steam/root/compatibilitytools.d/proton-ge-tags
-	curl -L $(jq -r '.tarball_url'<<<"$latest_json") | tar -C $COMPTOOLSDIR -xvz
+	echo $release_tag >> $COMPTOOLSDIR/proton-ge-tags
+	curl -L $(jq -r '.assets[0].browser_download_url'<<<"$latest_json") | tar -C $COMPTOOLSDIR -xvz
 	echo "${fg_bold[green]}Installed release $release_tag.$reset_color"
 fi
