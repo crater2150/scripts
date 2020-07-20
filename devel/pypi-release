@@ -1,0 +1,49 @@
+#!/bin/zsh
+
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+
+root=$(git rev-parse --show-toplevel 2&>1)
+if [[ $? != 0 ]]; then
+	echo "couldn't find project root (not a git repo?)"
+	exit 1
+fi
+cd $root
+
+pip-venv-deps twine bump2version
+
+if ! exists chronic; then
+	echo "(chronic not found. install moreutils to only see relevant output)"
+	chronic(){"$@"}
+fi
+
+
+echo "Current version: $(python setup.py --version)"
+if [[ -e .bumpversion.cfg ]] || \
+	([[ -e setup.cfg ]] && grep -q bumpversion setup.cfg); then
+		chronic pip install bump2version
+		echo -n "Bump version? [major/M/minor/m//patch/p/none/n]"
+		read bump
+		case $bump in
+			major|M)
+				bump2version major || exit 1;;
+			minor|m)
+				bump2version minor || exit 1;;
+			patch|p)
+				bump2version patch || exit 1;;
+			none|n);;
+			*)
+				echo "\e[93mUnknown version type: $bump. Assuming no bump\e[0m"
+		esac
+fi
+
+echo -n "Building..."
+chronic python3 setup.py sdist bdist_wheel
+echo " Done"
+
+version=$(python setup.py --version)
+echo "Will run the following command:"
+echo " > twine upload dist/*-$version*"
+echo -n "Continue? [yn] "
+read -q || exit 1
+echo "Starting Upload"
+twine upload dist/*-$version*

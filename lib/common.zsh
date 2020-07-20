@@ -46,3 +46,11 @@ urlencode() {
         echo "${${(j: :)input}//(#b)(?)/%$[[##16]##${match[1]}]}"
 }
 
+pip-venv-deps() {
+	if [[ -n $VIRTUAL_ENV ]]; then
+		pip install -qqq "$@"
+	else
+		echo "Not in a virtual env."
+		exit 1
+	fi
+}
