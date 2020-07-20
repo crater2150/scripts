@@ -33,6 +33,7 @@ Options:
 	-p  --pretty   Show formatted output of new mails (TODO)
 
 HELP
+exit 0
 fi
 
 
