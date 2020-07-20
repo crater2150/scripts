@@ -4,9 +4,9 @@ source ${$(realpath "$0"):h:h}/lib/common.zsh
 
 profile="${0:t}"
 
-depend firefox firejail
+depend chromium firejail
 
-mkdir -p $HOME/.jails/firefox-$profile
+mkdir -p $HOME/.jails/chromium-$profile
 
-exec firejail --private=$HOME/.jails/firefox-$profile \
-	firefox --class $profile --no-remote "$@"
+exec firejail --private=$HOME/.jails/chromium-$profile \
+	chromium "$@"
