@@ -9,7 +9,7 @@ if [[ $? != 0 ]]; then
 fi
 cd $root
 
-pip-venv-deps twine bump2version
+pip-venv-deps twine bump2version setuptools wheel
 
 if ! exists chronic; then
 	echo "(chronic not found. install moreutils to only see relevant output)"

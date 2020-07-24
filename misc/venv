@@ -8,7 +8,9 @@ zparseopts -D -E \
 	n=newvenv -new=newvenv \
 	t=tmsu -tmsu=tmsu \
 	p=pyenv -pyenv=pyenv \
-	f=find -find=find
+	f=find -find=find \
+	i=ignore -ignore-local=ignore \
+	s=save -save=save
 
 if [[ $help ]]; then
 	<<-HELP
@@ -26,7 +28,12 @@ if [[ $help ]]; then
 	 -p, --pyenv   Use pyenv virtualenvs
 	 -f, --find    Search for virtualenvs by looking for directories ending with 'venv'
 
-	 If neither -p or -f are given, the default behaviour is to use both
+	    If neither -p or -f are given, the default behaviour is to use both
+
+	 -s, --save    Store selected venv in .venv in current directory. Will be used 
+	               automatically, when called in this dir again.
+	 -i, --ignore-local
+	               Ignore .venv files.
 	HELP
 	exit
 fi
@@ -39,7 +46,7 @@ venvsh() {
 	if [[ -z $cdvenv ]]; then
 		cd $ORIGDIR
 	fi
-	$SHELL
+	exec $SHELL
 }
 
 pyenvsh() {
@@ -47,8 +54,25 @@ pyenvsh() {
 	eval "$(pyenv init -)"
 	eval "$(pyenv virtualenv-init -)"
 	pyenv activate "$1"
-	$SHELL
+	exec $SHELL
 }
+
+envsh() {
+	local venv=$1
+	if [[ $venv =~ pyenv\!* ]]; then
+		pyenvsh ${venv##pyenv!}
+	else
+		venvsh $venv
+	fi
+}
+
+if [[ -z $ignore && -e .venv ]]; then
+	venv=$(<.venv)
+	echo "Local .venv found (-i to ignore)."
+	echo "Using: $venv"
+	envsh $venv
+fi
+
 
 if [[ -n $tmsu ]]; then
 	venv=$(
@@ -84,10 +108,10 @@ elif [[ ! $pyenv && $find ]]; then
 else
 	venv=$(cat <(fd -I -t d 'venv$' $1) <(pyenvs) | fzf)
 fi
+
 if [[ -n $venv ]]; then
-	if [[ $venv =~ pyenv\!* ]]; then
-		exec pyenvsh ${venv##pyenv!}
-	else
-		exec venvsh $venv
+	if [[ -n $save ]]; then
+		echo $venv > .venv
 	fi
+	envsh $venv
 fi
