@@ -1,0 +1,28 @@
+#!/bin/zsh
+
+zparseopts -D -E i=installed -installed=installed
+
+if [[ $installed ]]; then
+	filter-installed() {
+		grep -e '^\[\*\]'
+	}
+else
+	filter-installed() {
+		cat
+	}
+fi
+
+description=$(
+	xbps-query -Rs "$*" \
+		| filter-installed \
+		| fzf \
+		| cut -d' ' -f 2 \
+		| xargs xbps-query -R 
+)
+{ 
+	grep '^pkgname:' <<<$description
+	grep '^pkgver:' <<<$description
+	grep '^short_desc:' <<<$description
+	grep -v '^pkgname:\|^pkgver:\|^short_desc:' <<<$description
+
+}| sed -e 's/^\([^:]*:\)/\x1B[33m\1\x1B[0m/' | $PAGER

@@ -1,0 +1,21 @@
+#!/bin/zsh
+
+zparseopts -D -E h=help -help=help e+:=extension -extension+:=extension
+if [[ -n "$help" ]]; then
+  echo "Usage: docopen [DIR [EXTENSION ...]]"
+  echo
+  echo "Searches for files in given or current dir, optionally filtered by extension"
+  echo "Files are shown in dmenu and selected file is opened"
+  exit 1
+fi
+
+# return all files in the current dir
+# if arguments are given, each argument is taken as a file extension. only files
+# which match any given extension are returned
+search-docs() {
+  fd --type file $extension . "$@"
+}
+
+target=$(search-docs "$@" | txmenu -i -l 50 -p 'Open Document:')
+
+[[ -n $target ]] && xdg-open $target

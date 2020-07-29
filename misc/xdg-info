@@ -1,0 +1,17 @@
+#!/bin/zsh
+
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+
+if ! exists column; then
+	column() { cat }
+fi
+
+{
+	echo -e "file\ttype\tdefault program"
+	for file in "$@"; do
+		mimetype=$(xdg-mime query filetype $file)
+		prog=$(xdg-mime query default $mimetype)
+		echo -e "$file\t$mimetype\t$prog"
+	done
+} | column -t -s $'\t'
+

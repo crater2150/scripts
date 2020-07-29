@@ -1,0 +1,13 @@
+#!/bin/zsh
+
+# A simple wrapper around fzf and rofi, choosing based on if called from a terminal
+
+zparseopts -D -E i=ignorecase l:=rofi_lines p:=listprompt -prompt:=listprompt
+
+if test -t || [[ $TERM ]]; then
+	fzf $ignorecase ${listprompt:+--prompt} ${listprompt[2]} "$@"
+elif [[ -n $DISPLAY ]]; then
+	dmenu $ignorecase $rofi_lines $listprompt "$@"
+else
+	echo "Error: neither terminal nor X display" >&2
+fi

@@ -1,0 +1,3 @@
+#!/bin/zsh
+remote=${1:-origin}
+git remote set-url $remote $(git remote get-url $remote | sed -e 's#https?://\([^/]*\)/#git@\1:#')
