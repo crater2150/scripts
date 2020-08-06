@@ -34,6 +34,11 @@ fi
 
 . $XDG_CONFIG_HOME/newpass.sh
 
+zparseopts -D -E a:=accname -account:=accname p:=prefix -prefix:=prefix
+
+[[ $accname ]] && accname=$accname[2]
+[[ $prefix ]] && MAIL_PREFIX=$prefix[2]
+
 if [[ -z $MAILHOST ]]; then
 	error "MAILHOST not set in config file. Aborting."
 	exit 1
@@ -51,8 +56,10 @@ fi
 servicename=$(echo $domain | awk -F. '{print $(NF-1)}')
 email="$MAIL_PREFIX$servicename@$MAILHOST"
 
-echo "Enter account name or leave blank to use proposed name: $email"
-echo -n "Name: "; read accname
+if [[ -z $accname ]]; then
+	echo "Enter account name or leave blank to use proposed name: $email"
+	echo -n "Name: "; read accname
+fi
 if [[ -z $accname ]]; then
 	accname="$email"
 	emailentry=$'\nemail: '"$email"
