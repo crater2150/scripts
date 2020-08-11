@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:alacritty tmux mosh
 if [[ "$1" == "-S" ]]; then
 	shift
 	server=${1};

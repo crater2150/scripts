@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:fd dmenu fzf
 
 zparseopts -D -E h=help -help=help e+:=extension -extension+:=extension
 if [[ -n "$help" ]]; then

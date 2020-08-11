@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:curl
 # installs or updates to latest release of Proton build by GloriousEggroll
 # saves installed versions in $STEAM_DIR/compatibilitytools.d/proton-ge-tags
 

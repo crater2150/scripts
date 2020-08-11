@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:mdcat iconv
 
 MDCAT=/usr/bin/mdcat
 encoding=$(file -i "$1" | sed "s/.*charset=\(.*\)$/\1/")

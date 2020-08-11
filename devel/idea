@@ -1,6 +1,7 @@
 #!/bin/zsh
+#dep:java
 unset JAVA_HOME
-source /etc/profile.d/11_oracle-jdk.sh
+source /etc/profile.d/10_openjdk11.sh
 export IBUS_ENABLE_SYNC_MODE=1
 export XMODIFIERS=""
 

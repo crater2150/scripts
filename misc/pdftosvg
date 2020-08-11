@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:inkscape xmllint
 for i in "$@"; do
 	inkscape --without-gui --file=$i --export-plain-svg=/dev/stdout \
 		| tr -d '\n' \

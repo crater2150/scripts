@@ -1,0 +1,23 @@
+#!/bin/zsh
+#dep:unzip wget
+# installs or updates to latest release of SMAPI (Stardew Valley Modding API)
+
+WORKDIR=$(mktemp -d)
+cd $WORKDIR
+echo $WORKDIR
+pwd
+
+latest_json=$(curl -s https://api.github.com/repos/Pathoschild/SMAPI/releases/latest)
+
+download_url=$(jq -r <<<"$latest_json" '.assets[]|select(.name | contains("developer")|not)|.browser_download_url')
+
+wget -O smapi.zip $download_url
+
+unzip smapi.zip
+
+cd SMAPI*
+
+{ sleep 0.5; printf "2\n1\n"} | sh install\ on\ Linux.sh
+
+cd /
+rm -rf $WORKDIR

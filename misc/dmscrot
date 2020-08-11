@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+#dep:scrot dmenu
 
 require 'dmenu'
 

@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:slimlock
 
 lockstate() { pidof slimlock &>/dev/null }
 

@@ -1,5 +1,5 @@
 #!/bin/zsh
-
+#dep:mpc dmenu
 dmenu_opts=("" "-i")
 replace=("-r")
 

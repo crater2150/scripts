@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:at
 time=$1; shift
 (
 echo "DISPLAY=$DISPLAY sm \"$@\"" | at $time

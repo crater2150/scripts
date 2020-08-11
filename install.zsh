@@ -3,7 +3,7 @@
 source ${$(realpath "$0"):h}/lib/common.zsh
 
 typeset -A interpreter_checked
-have_interpreter() {
+have_dependency() {
 	if [[ ! $interpreter_checked[$1] ]]; then
 		check "Checking for $1… "
 		if which $1 &> /dev/null; then
@@ -22,6 +22,10 @@ uses_interpreter() {
 	head -n 1 $2 | grep -q $1
 }
 
+get_dependencies() {
+	sed -n '2{/^#dep:/{s/^#dep://;p;q}}' $1
+}
+
 if [[ -z $1 ]]; then
 	<<-HELP
 	Usage: $0 [-p PATH] <program_names>
@@ -38,10 +42,13 @@ else
 fi
 
 for prog in $@; do
-	for lang in zsh ruby python; do
+	for lang in zsh ruby python amm; do
 		if uses_interpreter $lang $prog; then
-			have_interpreter $lang || exit 1
+			have_dependency $lang || exit 1
 		fi
+	done
+	for dep in $(get_dependencies $prog); do
+		have_dependency $dep || exit 1
 	done
 	if [[ -e $install_path/${prog:t} && ! $force ]]; then
 		warning "$prog already exists at $install_path. Skipping."

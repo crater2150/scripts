@@ -1,5 +1,5 @@
 #!/bin/zsh
-
+#dep:fzf dmenu
 # A simple wrapper around fzf and rofi, choosing based on if called from a terminal
 
 zparseopts -D -E i=ignorecase l:=rofi_lines p:=listprompt -prompt:=listprompt

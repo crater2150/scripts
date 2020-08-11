@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:dos2unix iconv
 for i in "$@"; do
 	dos2unix $i &>/dev/null
 	iconv -fLATIN1 -tUTF8 $i | sponge $i

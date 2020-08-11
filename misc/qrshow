@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:qrencode feh
 if [[ -z "$1" ]]; then
 	qrencode -s 40 -o -
 else

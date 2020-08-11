@@ -1,5 +1,5 @@
 #!/bin/zsh
-
+#dep:pgrep
 if [[ $1 == "-u" ]]; then
 	USER=$2
 	SUDO="sudo -u $USER"

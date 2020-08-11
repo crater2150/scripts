@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:ssh rsync
 file_id=$(head -c 12 /dev/urandom|base64| tr '/' '+')
 file_name=${2:-${1:t}}
 

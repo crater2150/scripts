@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:udiskie-info dmenu
 device=$(udiskie-info -a -o '{mount_path}' | grep -ve '^$' | dmenu -l 20)
 if [[ -n "$device" ]]; then
 	udiskie-umount $device

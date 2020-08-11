@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:pueue jq column
 
 JQ_PREDEF='
 def colors:

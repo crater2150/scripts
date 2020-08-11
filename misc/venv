@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:fd fzf
 
 source ${$(realpath "$0"):h:h}/lib/common.zsh
 

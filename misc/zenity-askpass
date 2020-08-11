@@ -1,2 +1,3 @@
 #!/bin/zsh
+#dep:zenity
 zenity --password --title="sudo password prompt" --timeout=10

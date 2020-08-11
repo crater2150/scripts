@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:tmux alacritty
 
 if [[ "${0:t}" == "guiterm" ]]; then
 	<<-HELP

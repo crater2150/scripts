@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:xdg-mime
 
 source ${$(realpath "$0"):h:h}/lib/common.zsh
 

@@ -1,0 +1,11 @@
+#!/bin/zsh
+#dep:jq ip
+if [[ $1 == "-h" || $1 == "--help" ]]; then
+	echo "Usage: selfip [target address]"
+	echo
+	echo "  Prints own address used to access the given address"
+	echo "  Defaults to 8.8.8.8, which will show the IP of the"
+	echo "  interface used to access the internet"
+	exit 0
+fi
+ip -json route get ${1:-8.8.8.8} | jq -r '.[0].prefsrc'

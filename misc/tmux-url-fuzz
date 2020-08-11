@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:tmux ifne fzf-tmux xdg-open
 target=$(tmux capture-pane -e -p -J -S -20 \
 	| grep -oP "(https?://|www\.)[^\"<>') 	\e]*" \
 	| ifne fzf-tmux --tac)

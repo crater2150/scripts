@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:pass pwgen xclip
 
 source ${$(realpath "$0"):h:h}/lib/common.zsh
 

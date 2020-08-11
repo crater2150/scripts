@@ -1,6 +1,5 @@
 #!/bin/zsh
-
-source ${$(realpath "$0"):h:h}/lib/common.zsh
+#dep:rofi
 
 emulate -L zsh
 
@@ -8,13 +7,6 @@ SYSTEM_CONFIG_PATH='/etc/dmsearch'
 CONFIG_PATH="$HOME/.config/dmsearch"
 CACHE_PATH="$HOME/.cache/dmsearch"
 mkdir -p "${CACHE_PATH}"
-
-# required software
-depend dmsearch \
-	rofi \
-	mv \
-	tail \
-	cut
 
 
 ################################################################################

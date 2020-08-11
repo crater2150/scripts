@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:perl notify-send
 
 DEFAULT=raw
 ICON=/usr/share/icons/Adwaita/48x48/actions/mail-message-new.png

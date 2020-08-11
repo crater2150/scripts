@@ -1,10 +1,10 @@
 #!/bin/zsh
+#dep:xclip
 
 # install this program with the name xc and symlink it as xs.
 # xc will use the clipboard selection, while xs while use the primary selection
 
 source ${$(realpath "$0"):h:h}/lib/common.zsh
-depend xclip
 
 function get_primary() { xclip -o -selection primary }
 function get_clipboard() { xclip -o -selection clipboard }

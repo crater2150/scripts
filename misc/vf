@@ -1,4 +1,5 @@
 #!/bin/zsh
+#dep:fd fzf
 zparseopts -D -E -ext:=ext e:=ext h=help -help=help
 
 if [[ -n $help ]]; then
