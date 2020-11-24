@@ -33,6 +33,8 @@ zparseopts -D -E p:=install_path -path:=install_path f=force -force=force
 
 if [[ ! $install_path ]]; then
 	install_path=$HOME/.local/bin
+else
+	install_path=${install_path[2]}
 fi
 
 for prog in $@; do
@@ -44,6 +46,8 @@ for prog in $@; do
 	if [[ -e $install_path/${prog:t} && ! $force ]]; then
 		warning "$prog already exists at $install_path. Skipping."
 	else
-		ln -fsr $prog $install_path
+		check "Installing $prog… "
+		ln -fsr $prog $install_path || fail
+		succeed
 	fi
 done

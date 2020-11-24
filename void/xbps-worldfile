@@ -37,7 +37,7 @@ fi
 EDITFILE=$(mktemp -p ${TMPDIR:-/tmp} xbps-worldfile.edit.XXXXXXXXXX)
 cp $TMPFILE $EDITFILE
 
-$EDITOR $EDITFILE
+${EDITOR:-/usr/bin/vim} $EDITFILE
 
 autopkgs=$(not-in-left $EDITFILE $TMPFILE | first-col)
 manualpkgs=$(not-in-left $TMPFILE $EDITFILE | first-col)
