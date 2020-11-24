@@ -6,7 +6,7 @@ typeset -A interpreter_checked
 have_interpreter() {
 	if [[ ! $interpreter_checked[$1] ]]; then
 		check "Checking for $1… "
-		if which ruby &> /dev/null; then
+		if which $1 &> /dev/null; then
 			succeed
 			interpreter_checked[$1]=1
 			return 0
