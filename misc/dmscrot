@@ -12,10 +12,10 @@ def run_menu(items, prompt)
 	menu.run.value
 end
 modes = [
-	Dmenu::Item.new('multidisp', '-m'),
-	Dmenu::Item.new('select', '-s'),
-	Dmenu::Item.new('focused', '-u -d 1'),
-	Dmenu::Item.new('normal', '')
+	Dmenu::Item.new('multidisp', ['-m']),
+	Dmenu::Item.new('select', ['-s']),
+	Dmenu::Item.new('focused', ['-u', '-d', '1']),
+	Dmenu::Item.new('normal', [''])
 ]
 
 actions = [
@@ -28,4 +28,4 @@ actions = [
 mode = run_menu(modes, "Screenshot type")
 action = run_menu(actions, "and then")
 
-system('scrot', mode, '-e', action)
+system('scrot', *mode, '-e', action)
