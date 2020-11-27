@@ -28,12 +28,18 @@ get_dependencies() {
 
 if [[ -z $1 ]]; then
 	<<-HELP
-	Usage: $0 [-p PATH] <program_names>
+	Usage: $0 [opts] <program_names>
+	Options:
+	  -p, --path PATH   target directory to install into (defaults to ~/.local/bin)
+	  -f, --force       overwrite existing files in the same dir
+	  -s, --skip        when installing several scripts, skip scripts with unmet
+	                    dependencies instead of aborting.
 	HELP
 	exit 1
 fi
 
-zparseopts -D -E p:=install_path -path:=install_path f=force -force=force
+zparseopts -D -E p:=install_path -path:=install_path f=force -force=force \
+	s=skip -skip=skip
 
 if [[ ! $install_path ]]; then
 	install_path=$HOME/.local/bin
@@ -48,7 +54,13 @@ for prog in $@; do
 		fi
 	done
 	for dep in $(get_dependencies $prog); do
-		have_dependency $dep || exit 1
+		if !have_dependency $dep; then
+			if [[ $skip ]]; then
+				continue 2
+			else
+				exit 1
+			fi
+		fi
 	done
 	if [[ -e $install_path/${prog:t} && ! $force ]]; then
 		warning "$prog already exists at $install_path. Skipping."
