@@ -1,0 +1,9 @@
+#!/bin/zsh
+ICON=/usr/share/icons/Paper/16x16/status/software-update-available.png
+
+updates=$(xbps-install -Sun | wc -l)
+if [[ $updates -gt 0 ]]; then
+	notify-send --icon=$ICON -t 0 "$updates Updates available"
+else
+	notify-send -t 1500 "Updates checked, nothing new"
+fi
