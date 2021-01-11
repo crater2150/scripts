@@ -54,7 +54,7 @@ for prog in $@; do
 		fi
 	done
 	for dep in $(get_dependencies $prog); do
-		if !have_dependency $dep; then
+		if ! have_dependency $dep; then
 			if [[ $skip ]]; then
 				continue 2
 			else
