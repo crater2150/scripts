@@ -3,7 +3,8 @@
 
 profile="${0:t}"
 
-mkdir -p $HOME/.jails/chromium-$profile
+profile_dir=${XDG_DATA_HOME:-$HOME/.local/share}/jails/webapp-$profile
 
-exec firejail --private=$HOME/.jails/chromium-$profile \
-	chromium "$@"
+mkdir -p $profile_dir
+
+exec firejail --private=$profile_dir chromium "$@"
