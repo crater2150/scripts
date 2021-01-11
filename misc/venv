@@ -79,7 +79,7 @@ if [[ -n $tmsu ]]; then
 	venv=$(
 		for i in $(tmsu files --directory lang=python); do
 			[[ -d $i/venv ]] && echo $i/venv
-		done | fzf)
+		done | fzf -q "$*")
 	if [[ -n $venv ]]; then
 		exec venvsh $venv
 	else
@@ -103,11 +103,11 @@ pyenvs() {
 }
 
 if [[ $pyenv && ! $find ]]; then
-	venv=$(pyenvs | fzf)
+	venv=$(pyenvs | fzf -q "$*")
 elif [[ ! $pyenv && $find ]]; then
-	venv=$(fd -I -t d 'venv$' $1 | fzf)
+	venv=$(fd -I -t d 'venv$' $1 | fzf -q "$*")
 else
-	venv=$(cat <(fd -I -t d 'venv$' $1) <(pyenvs) | fzf)
+	venv=$(cat <(fd -I -t d 'venv$' $1) <(pyenvs) | fzf -q "$*")
 fi
 
 if [[ -n $venv ]]; then
