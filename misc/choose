@@ -1,0 +1,11 @@
+#!/bin/zsh
+
+zparseopts -D -E x=xorg -xorg=xorg
+
+chosen="${@[RANDOM % $# + 1]}"
+
+if [[ $xorg ]]; then
+    zenity --info --text=$chosen
+else
+    echo $chosen
+fi
