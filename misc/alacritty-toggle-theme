@@ -1,0 +1,2 @@
+#!/bin/zsh
+sed -i '/^colors:/{/light$/{s/light/dark/;b}; /dark$/{s/dark/light/}}' ${XDG_CONFIG_HOME:-$HOME/.config}/alacritty/alacritty.yml
