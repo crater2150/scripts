@@ -26,6 +26,14 @@ exists() {
 	type "$1" &>/dev/null
 }
 
+alternative() {
+	if ! exists $1; then eval "$1(){ $2 \$@}"; fi
+}
+
+alternative-noparam() {
+	if ! exists $1; then eval "$1(){ $2 }"; fi
+}
+
 depend() {
 	local missing
 	local i

@@ -6,14 +6,15 @@ typeset -A interpreter_checked
 have_dependency() {
 	if [[ ! $interpreter_checked[$1] ]]; then
 		check "Checking for $1… "
-		if which $1 &> /dev/null; then
-			succeed
-			interpreter_checked[$1]=1
-			return 0
-		else
-			fail "not found in path"
-			return 1
-		fi
+		for variant in ${(s.|.)1}; do
+			if which $variant &> /dev/null; then
+				succeed
+				interpreter_checked[$1]=1
+				return 0
+			fi
+		done
+		fail "not found in path"
+		return 1
 	fi
 
 }
