@@ -1,0 +1,59 @@
+#!/bin/zsh
+
+CURRENT_TIME=$(date +%s)
+CURRENT_DATE=$(date --iso-8601)
+ORIG_DIR=$PWD
+
+# calculate age of mail in days
+mail-age() {
+	local mail_time=$(grep -m 1 -e '^Date:' $1\
+			| awk -F' ' '{$1=""; print}' \
+			| xargs --null date +%s -d)
+	echo $(((CURRENT_TIME - mail_time)/86400))
+}
+
+for maildir in $@; do
+	if [[ -d $maildir/cur ]]; then
+		name=${maildir:a:t}
+		maildir=$maildir/cur
+	else
+		name=${maildir:a:h:t}
+	fi
+	archive=/tmp/archive-mails/$maildir/archive.$CURRENT_DATE
+	<<-LOG
+		Going to archive:
+		maildir: $maildir
+		name:    $name
+		archive: $archive
+
+		Continue? [y/n]
+	LOG
+	read -q || exit 1
+	
+	# create maildir structure, so that backup can be opened with an email
+	# client directly
+	mkdir -p $archive/cur $archive/new $archive/tmp
+	
+	printf "Archived: 0"
+	num=0
+
+	for mail in $maildir/*(.); do
+		if [[ $(mail-age $mail) -gt 365 ]]; then
+			mv $mail $archive/cur
+			printf "\rArchived: $((++num))"
+		fi
+	done
+	echo
+
+	echo "Compressing..."
+	cd /tmp/archive-mails/$maildir/
+	tar --xz -cf $archive.tar.xz archive.$CURRENT_DATE
+	cd $ORIG_DIR
+	if [[ -n $MAILDIR ]]; then
+		mkdir -p $MAILDIR/archive/$name
+		mv $archive.tar.xz $MAILDIR/archive/$name
+		echo "Created $MAILDIR/archive/$name/${archive:t}.tar.xz"
+	else
+		echo "Created $archive.tar.xz"
+	fi
+done
