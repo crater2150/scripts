@@ -19,4 +19,4 @@ project_dirs=(
 exec firejail \
 	--whitelist=${^dotfiles} \
 	--whitelist=${^project_dirs} \
-	$(ls ${XDG_DATA_HOME:-~/.local/share}/idea-IU-*/bin/idea.sh | sort | tail -n 1)
+	idea-ultimate
