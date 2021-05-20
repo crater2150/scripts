@@ -35,7 +35,7 @@ fi
 
 . $XDG_CONFIG_HOME/newpass.sh
 
-zparseopts -D -E a:=accname -account:=accname p:=prefix -prefix:=prefix
+zparseopts -D -E a:=accname -account:=accname p:=prefix -prefix:=prefix m:=mailuserpart -mail:=mailuserpart
 
 [[ $accname ]] && accname=$accname[2]
 [[ $prefix ]] && MAIL_PREFIX=$prefix[2]
@@ -55,7 +55,7 @@ else
 fi
 
 servicename=$(echo $domain | awk -F. '{print $(NF-1)}')
-email="$MAIL_PREFIX$servicename@$MAILHOST"
+email="${mailuserpart[2]:-$MAIL_PREFIX$servicename}@$MAILHOST"
 
 if [[ -z $accname ]]; then
 	echo "Enter account name or leave blank to use proposed name: $email"
@@ -65,7 +65,7 @@ if [[ -z $accname ]]; then
 	accname="$email"
 	emailentry=$'\nemail: '"$email"
 else
-	echo -n "Add proposed email? "; read -q && emailentry=$'\nemail: '"$email"
+	echo -n "Add proposed email $email? [yn] "; read -q && emailentry=$'\nemail: '"$email"
 fi
 
 pass insert -m $PASS_FOLDER${PASS_FOLDER:+/}${domain} <<-PASS
