@@ -47,7 +47,6 @@ val unseenMails = unseenMailPaths.map(p => MailInfo.fromPath(os.Path(p), maildir
 
 if (!unseenMails.isEmpty) {
   val markup = unseenMails.map(msg => s"<b>${msg.from}:</b> ${msg.subject}<br>").mkString
-  println(markup)
   os.proc("notify-send", s"--icon=$icon", "Mails", markup).call()
 }
 
