@@ -28,7 +28,7 @@ for prog in $@; do
 		warning "${target} already exists at $install_path. Skipping."
 	else
 		check "Creating $target… "
-		ln -fsr $prog $install_path/$target || fail
+		ln -fsr lib/g $install_path/$target || fail
 		succeed
 	fi
 done
