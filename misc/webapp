@@ -1,6 +1,10 @@
 #!/bin/zsh
 #dep:chromium firejail
 
+export GOOGLE_API_KEY="no"
+export GOOGLE_DEFAULT_CLIENT_ID="no"
+export GOOGLE_DEFAULT_CLIENT_SECRET="no"
+
 profile="${0:t}"
 
 profile_dir=${XDG_DATA_HOME:-$HOME/.local/share}/jails/webapp-$profile
