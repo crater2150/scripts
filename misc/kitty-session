@@ -1,0 +1,7 @@
+#!/bin/zsh
+#dep:rofi kitty
+sessions=($XDG_CONFIG_HOME/kitty/sessions/*.session)
+selected=$(printf "%s\n" ${sessions:r:t} | rofi -dmenu -p "Kitty session")
+if [[ -n $selected ]]; then
+	exec kitty --session $XDG_CONFIG_HOME/kitty/sessions/$selected.session
+fi

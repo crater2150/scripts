@@ -1,0 +1,28 @@
+#!/usr/bin/expect
+# dep: expect
+# based on https://askubuntu.com/a/16836/718886
+# and https://github.com/kovidgoyal/kitty/issues/3702#issuecomment-858230438
+
+#trap sigwinch and pass it to the child we spawned
+#this allows the gnome-terminal window to be resized
+trap {
+ set rows [stty rows]
+ set cols [stty columns]
+ stty rows $rows columns $cols < $spawn_out(slave,name)
+} WINCH
+
+set arg1 [lindex $argv 0]
+
+# Get a Bash shell
+spawn -noecho $env(SHELL)
+
+# Wait for a prompt
+expect -re "$|%"
+
+# Type something
+send "$arg1\n"
+
+# Hand over control to the user
+interact
+
+exit
