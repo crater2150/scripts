@@ -1,0 +1,12 @@
+#!/bin/zsh
+
+zparseopts -D -E \
+	t:=title -title=title \
+	e:=execute -exec=execute -execute=execute \
+	c:=class -class=class
+
+if [[ -n $1 || -n $execute ]]; then
+	execparam="-e"
+fi
+
+alacritty ${class+--class} ${class[2]} ${title+-t} ${title[2]} $execparam ${=execute[2]} "$@"

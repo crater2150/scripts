@@ -1,5 +1,5 @@
 #!/bin/zsh
-#dep:alacritty tmux mosh
+#dep:x-terminal-emulator tmux mosh
 if [[ "$1" == "-S" ]]; then
 	shift
 	server=${1};
@@ -8,4 +8,4 @@ else
 	server="qwerty";
 fi
 
-exec alacritty -t Weechat -e tmux new-session mosh "${server}" -- tmux attach "$@" -t weechat
+exec x-terminal-emulator -t Weechat -e tmux new-session mosh "${server}" -- tmux attach "$@" -t weechat

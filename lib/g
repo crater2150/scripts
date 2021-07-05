@@ -24,6 +24,4 @@ else
 	action="tmux new-session -s ${prog} ${prog}"
 fi
 
-#exec alacritty --title G${prog} -e ${=action}
-#exec urxvt -name G${prog} -e ${=action}
-exec alacritty -t G${prog} -e ${=action}
+exec x-terminal-emulator -t G${prog} -e ${=action}
