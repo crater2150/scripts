@@ -12,17 +12,35 @@ else
 	}
 fi
 
-description=$(
+package=$(
 	xbps-query -Rs "$*" \
 		| filter-installed \
 		| fzf \
 		| cut -d' ' -f 2 \
-		| xargs xbps-query -R 
-)
+		)
+
+description=$(xbps-query -R $package)
+colored_description=$(mktemp)
 { 
 	grep '^pkgname:' <<<$description
 	grep '^pkgver:' <<<$description
 	grep '^short_desc:' <<<$description
 	grep -v '^pkgname:\|^pkgver:\|^short_desc:' <<<$description
 
-}| sed -e 's/^\([^:]*:\)/\x1B[33m\1\x1B[0m/' | $PAGER
+}| sed -e 's/^\([^:]*:\)/\x1B[33m\1\x1B[0m/' > $colored_description
+
+action=$(
+	printf "%s\n" details install remove hold unhold 'list files' 'set to auto' 'set to manual'| fzf --header "Actions for $package" --preview "cat $colored_description"
+)
+
+case $action in
+	details) cat $colored_description ;;
+	install) sudo xbps-install $package ;;
+	remove) sudo xbps-remove $package ;;
+	hold) sudo xbps-pkgdb -m hold $package ;;
+	unhold) sudo xbps-pkgdb -m unhold $package ;;
+	'list files') xbps-query -Rf $package ;;
+	'set to auto') sudo xbps-pkgdb -m auto $package ;;
+	'set to manual') sudo xbps-pkgdb -m manual $package ;;
+	*) echo "unknown action: $action"
+esac
