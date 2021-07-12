@@ -8,4 +8,4 @@ else
 	server="qwerty";
 fi
 
-exec x-terminal-emulator -t Weechat -e tmux new-session mosh "${server}" -- tmux attach "$@" -t weechat
+exec x-terminal-emulator -t Weechat -e mosh "${server}" -- tmux attach "$@" -t weechat

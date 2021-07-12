@@ -5,4 +5,4 @@ zparseopts -D -E \
 	e:=execute -exec=execute -execute=execute \
 	c:=class -class=class
 
-kitty -1 ${class+--class=}${class[2]} ${title:+-T} ${title[2]} ${=execute[2]} "$@"
+kitty ${class+--class=}${class[2]} ${title+-T} ${title[2]} ${=execute[2]} "$@"
