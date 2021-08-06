@@ -3,6 +3,7 @@ autoload -Uz colors && colors
 local c_fail="${fg_bold[red]}✘$reset_color"
 local c_warn="${fg_bold[yellow]}⚠$reset_color"
 local c_success="${fg_bold[green]}✔$reset_color"
+local c_info="${fg_bold[green]}💡$reset_color"
 
 check() {
 	echo -n " ? $*"
@@ -18,6 +19,7 @@ result() {
 
 fail() { result $c_fail $@ }
 warn() { result $c_warn $@ }
+info() { result $c_info $@ }
 succeed() { result $c_success $@ }
 error() { echo -n "  "; fail $@ }
 warning() { echo -n "  "; warn $@ }

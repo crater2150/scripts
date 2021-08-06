@@ -1,0 +1,4 @@
+#!/bin/zsh
+#flatpak: flathub:chat.schildi.desktop 
+export $(dbus-launch)
+exec flatpak run chat.schildi.desktop

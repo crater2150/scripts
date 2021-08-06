@@ -24,7 +24,24 @@ uses_interpreter() {
 }
 
 get_dependencies() {
-	sed -n '2{/^#dep:/{s/^#dep://;p;q}}' $1
+	sed -n '2,4{/^#dep:/{s/^#dep://;p;q}}' $1
+}
+get_flatpak_dependencies() {
+	sed -n '2,4{/^#flatpak:/{s/^#flatpak://;p;q}}' $1
+}
+
+have_flatpak() {
+	check "Checking for flatpak: $1… "
+	flatpak info "$@" &> /dev/null
+}
+
+install_flatpak() {
+	if [[ ! -e flatpaks/.repos/$1 ]]; then
+		fail "Unknown flatpak repo: $1. Add its URL in flatpaks/.repos/$1"
+	else
+		flatpak --user remote-add --if-not-exists $1 $(<flatpaks/.repos/$1)
+		flatpak --user install $1 $2
+	fi
 }
 
 if [[ -z $1 ]]; then
@@ -35,12 +52,13 @@ if [[ -z $1 ]]; then
 	  -f, --force       overwrite existing files in the same dir
 	  -s, --skip        when installing several scripts, skip scripts with unmet
 	                    dependencies instead of aborting.
+	  --no-flatpak      do not automatically install flatpak deps (still checks for them)
 	HELP
 	exit 1
 fi
 
 zparseopts -D -E p:=install_path -path:=install_path f=force -force=force \
-	s=skip -skip=skip
+	s=skip -skip=skip -no-flatpak=noflatpakinstall
 
 if [[ ! $install_path ]]; then
 	install_path=$HOME/.local/bin
@@ -56,11 +74,20 @@ for prog in $@; do
 	done
 	for dep in $(get_dependencies $prog); do
 		if ! have_dependency $dep; then
-			if [[ $skip ]]; then
-				continue 2
-			else
-				exit 1
-			fi
+			[[ $skip ]] && continue 2 || exit 1
+		fi
+	done
+	for dep in $(get_flatpak_dependencies $prog); do
+		local repo=${dep%:*}
+		local pak=${dep#*:}
+		if have_flatpak $pak; then
+			succeed
+		elif [[ $noflatpakinstall ]]; then
+			fail "not installed and --no-flatpak given"
+			[[ $skip ]] && continue 2 || exit 1
+		else
+			info "missing. Installing now..."
+			install_flatpak $repo $pak
 		fi
 	done
 	if [[ -e $install_path/${prog:t} && ! $force ]]; then

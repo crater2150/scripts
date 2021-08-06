@@ -1,3 +1,4 @@
 #!/bin/zsh
+#flatpak: flathub:com.discordapp.Discord
 export $(dbus-launch)
 exec flatpak run com.discordapp.Discord
