@@ -73,6 +73,20 @@ dmdefault() {
 	fi
 }
 
+# adapted from https://gist.github.com/lucasad/6474224
+# urlencodes the string given as argument, or, if no string is given, its input
+# on stdin
+urlencode() {
+	setopt localoptions extendedglob
+	local input
+	if [[ -n $1 ]]; then
+		input=( ${(s::)1} )
+	else
+		input=( ${(s::)$(</dev/stdin)} )
+	fi
+	print ${(j::)input/(#b)([^A-Za-z0-9_.\!~*\'\(\)-])/%${(l:2::0:)$(([##16]#match))}}
+}
+
 ################################################################################
 # plugin loading
 ################################################################################
@@ -148,8 +162,10 @@ search=$(read -eu 6 | cut -d" " -f1)
 
 
 if which "s_${search}" &>/dev/null; then
+	echo >&2 "Module s_${search} starting"
 	qs=$(s_${search})
 else
+	echo >&2 "No module for ${search}, using generic"
 	qs="${SERCHILO}${search}"
 	result=$(dmhist "$search" | dmenu -i -l 20 -p "params to $search")
 	dmhistadd "$search" "$result"
