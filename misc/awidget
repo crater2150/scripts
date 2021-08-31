@@ -1,0 +1,19 @@
+#!/bin/zsh
+#dep:awesome-client
+
+zparseopts -D -E n=nofork
+
+if [ -z "$nofork" ]; then
+	$0 -n "$@" &
+	disown; exit 0;
+fi
+
+zparseopts -D -E u=update
+
+if [ -n "$update" ]; then
+	if [ -n "$2" ]; then
+		echo "return widgets.update(\"$1\", $2)" | awesome-client
+	else
+		echo "return widgets.update(\"$1\")" | awesome-client
+	fi
+fi
