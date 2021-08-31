@@ -1,0 +1,24 @@
+#!/bin/zsh
+DEFAULT_WM=awesome
+
+zparseopts -D w:=wmname -wm:=wmname -window-manager:=wmname h=help -help=help
+
+
+if [[ $help || -z "$@" ]]; then 
+	echo "Usage: ${0} [-w WMNAME] command..."
+	echo
+	echo " -w, --wm,  --window-manager  name of process to copy environment from"
+	echo "                              (default: $DEFAULT_WM)"
+	exit 1
+fi
+
+pid=$(pgrep ${wmname:-$DEFAULT_WM})
+if [[ $? != 0 ]]; then
+	echo "No process \"${wmname:-$DEFAULT_WM}\" found"
+	exit 1
+fi
+
+for x in "${(@ps:\000:)$(</proc/$pid/environ)}"; do
+	export $x
+done &>/dev/null
+exec "$@"
