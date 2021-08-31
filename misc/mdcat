@@ -1,8 +1,13 @@
 #!/bin/zsh
-#dep:mdcat iconv
+#dep:mdcat iconv chardetect
 
 MDCAT=/usr/bin/mdcat
-encoding=$(file -i "$1" | sed "s/.*charset=\(.*\)$/\1/")
+#encoding=$(file -i "$1" | sed "s/.*charset=\(.*\)$/\1/")
+if [[ $2 ]]; then
+	encoding=$2
+else
+	encoding=$(chardetect "$1" | grep -oP '(?<=: )\S*')
+fi
 if ! iconv -f $encoding <<<"" &> /dev/null; then
 	cat "$1"
 elif [[ $encoding != 'utf-8' ]]; then
