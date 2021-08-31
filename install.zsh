@@ -68,8 +68,12 @@ fi
 
 for prog in $@; do
 	for lang in zsh ruby python amm; do
-		if uses_interpreter $lang $prog; then
-			have_dependency $lang || exit 1
+		if uses_interpreter $lang $prog && ! have_dependency $lang; then
+			if [[ $skip ]]; then
+				continue 2
+			else
+				exit 1
+			fi
 		fi
 	done
 	for dep in $(get_dependencies $prog); do
