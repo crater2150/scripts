@@ -3,6 +3,30 @@
 
 # install this program with the name xc and symlink it as xs.
 # xc will use the clipboard selection, while xs while use the primary selection
+read -r -d '' HELPTEXT <<HELP
+Usage: xc [COMMAND]
+	   xc fromxs|toxs
+	   xs [COMMAND]
+	   xs fromxc|toxc
+
+The used X selection is determined by the name the program is called as:
+	xc: clipboard (Ctrl-C / Ctrl-V)
+	xs: primary selection (middle mouse button)
+For showboth/readboth, the action is done for both selections.
+
+Commands:
+	show/showboth:  show contents of clipboard
+	                (default if no command given)
+	read/readboth:  store input to clipboard
+	                (default if stdin is not a terminal)
+	sed:            modify contents using a sed expression
+	pipe:           modify contents by piping through a command
+	edit:           edit clipboard contents using \$EDITOR
+
+	fromxs/toxs:    xc only: copy contents from or to primary selection
+	fromxc/toxc:    xs only: copy contents from or to clipboard
+HELP
+
 
 source ${$(realpath "$0"):h:h}/lib/common.zsh
 
@@ -33,33 +57,23 @@ function common() {
 		"clear") echo -n | $setc;;
 		"readboth") read_both ;;
 		"showboth") show_both ;;
-		"sed") $getc | sed -e "$@" | $setc; $getc;;
+		"sed")
+			res=$($getc | sed -e "$@")
+			if [[ $? == 0 ]]; then
+				echo $res | $setc; $getc
+			fi
+			;;
 		"pipe") $getc | "$@" | $setc; $getc;;
 		"edit") depend vipe; $getc | vipe | $setc; $getc;;
 		"") if [[ -t 0 ]]; then $getc; else $setc; fi;;
-		*) <<-HELP
-			Usage: xc [COMMAND]
-			       xc fromxs|toxs
-			       xs [COMMAND]
-			       xs fromxc|toxc
-			
-			The used X selection is determined by the name the program is called as: 
-			    xc: clipboard (Ctrl-C / Ctrl-V)
-			    xs: primary selection (middle mouse button)
-			For showboth/readboth, the action is done for both selections.
-
-			Commands:
-			    show/showboth:  show contents of clipboard (default if no command given)
-			    read/readboth:  store input to clipboard (default if stdin is not a terminal)
-			    sed:            modify contents using a sed expression
-			    pipe:           modify contents by piping through a command
-			    edit:           edit clipboard contents using \$EDITOR
-
-			    fromxs/toxs:    xc only: copy contents from or to primary selection
-			    fromxc/toxc:    xs only: copy contents from or to clipboard
-		HELP
-		;;
-	esac
+		*)
+			if [[ -f "$cmd" ]]; then
+				$setc < $cmd
+			else
+				echo $HELPTEXT
+			fi
+			;;
+		esac
 }
 
 cmd=$1
