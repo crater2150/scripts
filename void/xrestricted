@@ -1,0 +1,83 @@
+#!/bin/zsh
+#dep:xi xbps-checkvers ag
+
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+
+alternative-noparam column cat
+
+PACKAGES_DIR=${VOID_PACKAGES_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/void-packages}
+if [[ ! -d $PACKAGES_DIR ]]; then
+	#fallback to location also used by xbps-checkvers
+	PACKAGES_DIR=$HOME/void-packages
+fi
+if [[ ! -d $PACKAGES_DIR ]]; then
+ 	<<-ERR
+	void-packages repo not found. Either set VOID_PACKAGES_DIR or place it at one of the 
+	following locations:
+	  - ${XDG_DATA_HOME:-$HOME/.local/share}/void-packages
+	  - $HOME/void-packages
+	ERR
+	exit 1
+fi
+
+zparseopts -D -E h=help -help=help j:=jobs -jobs:=jobs
+
+if [[ $help ]]; then
+	<<-HELP
+	Usage: xrestricted list
+	       xrestricted update
+	       xrestricted install <PACKAGE...>
+	
+	Install restricted packages from a void source repo.  Detected repo at:
+	  $VOID_PACKAGES_DIR
+	HELP
+	exit
+fi
+
+if [[ ! $jobs ]]; then
+	jobs=$(nproc)
+fi
+
+cd $PACKAGES_DIR
+packages=( $(ag -G 'template' restricted=yes srcpkgs/ | cut -d/ -f 2 | sort -u) )
+
+version() { grep -Poe '(?<=^version=).*$' srcpkgs/$1/template }
+install_restricted() {
+	./xbps-src pkg -j $jobs $1
+	xi $1
+}
+
+case $1 in
+	""|"list")
+		zparseopts -D -E v=verbose -verbose=verbose -versions=verbose
+		if [[ $verbose ]]; then
+			for pkg in $packages; do
+				printf "%s\t%s\n" $pkg $(version $pkg)
+			done | column -t
+		else
+			printf "%s\n" $packages
+		fi
+		;;
+	"update")
+		check "Updating package dir..."
+		git --git-dir=$PACKAGES_DIR/.git --work-tree=$PACKAGES_DIR/ pull \
+			&& succeed || fail
+		possible_updates=$(
+			xbps-checkvers -I -D $PACKAGES_DIR -m $packages |
+				awk '$2 != "?" { print }'
+			)
+
+		awk '{ printf "\x1b[34m%s\x1b[0m: %s →  \x1b[92m%s\x1b[0m\n", $1, $2, $3 }' <<<"$possible_updates"
+		printf "Run updates? [y/N] "
+		if read -q; then
+			for pkg in $(cut -d' ' -f 1 <<<"$possible_updates"); install_restricted $pkg
+		fi
+		;;
+	"install")
+		shift
+		for i in $@; install_restricted $i
+		;;
+	*)
+		for i in $@; install_restricted $i
+		;;
+esac
