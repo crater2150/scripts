@@ -1,0 +1,38 @@
+#!/bin/zsh
+#dep:awesome-client khal
+#
+# A small script for showing notifications for upcomping events from khal
+
+awesome-exec() { awesome-client <<<"$*" | sed -e 's/^\s*[a-zA-Z]* "\?\([^"]*\)"\?/\1/g' }
+
+notification_id_file=${XDG_RUNTIME_DIR:-/run/user/$UID}/khal-notify-id.txt
+if [[ ! -d ${notification_id_file:h} ]]; then
+	notification_id_file=/tmp/khal-notify-id.$UID.txt
+fi
+
+if [[ -e $notification_id_file ]]; then
+	notification_id=$(<$notification_id_file)
+else
+	notification_id=$(awesome-exec "return naughty.get_next_notification_id()")
+	echo $notification_id > $notification_id_file
+fi
+
+notify() {
+	awesome-exec "naughty.notify({
+		summary='$1',
+		text='$2', 
+		icon='$3', 
+		timeout = 0, 
+		replaces_id = $notification_id,
+		fg = '#000000',
+		bg = '#ca9600'
+	})"
+}
+
+
+events=$(khal list now 1h)
+if [[ $events == "no events" ]]; then
+	exit 0
+else
+	notify "Upcoming events" "$(tail -n +2 <<<"$events"| awk '{printf("%s%s", sep, $0); sep="<br>"} END {print ""}')" "$(find /usr/share/icons/ -ipath \*48x48/\*appointment-soon.\* | head -n 1)"
+fi
