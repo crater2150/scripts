@@ -1,0 +1,47 @@
+#!/bin/zsh
+OUTPUT=eDP1
+
+COORD_TRANS_NORMAL=( 1  0  0 
+	                 0  1  0
+				     0  0  1 )
+
+COORD_TRANS_LEFT=(   0 -1  1 
+	                 1  0  0
+				     0  0  1 )
+
+COORD_TRANS_RIGHT=(  0  1  0 
+	                -1  0  1
+				     0  0  1 )
+
+COORD_TRANS_INV=(   -1  0  1 
+	                 0 -1  1
+				     0  0  1 )
+
+typeset -a mat
+case $1 in
+	l|left)
+		mat=($COORD_TRANS_LEFT)
+		rotation=left
+		;;
+	r|right)
+		mat=($COORD_TRANS_RIGHT)
+		rotation=right
+		;;
+	i|inverted)
+		mat=($COORD_TRANS_INV)
+		rotation=inverted
+		;;
+	n|normal)
+		mat=($COORD_TRANS_NORMAL)
+		rotation=normal
+		;;
+	*)
+		echo "Usage: $0 <normal|left|right|inverted>"
+		exit 1
+		;;
+esac
+
+for dev in $(xinput list | grep slave.\*pointer | grep -oP '(?<=id=)\d*'); do
+	xinput set-prop $dev 'Coordinate Transformation Matrix' "${mat[@]}"
+done
+xrandr --output $OUTPUT --rotate $rotation
