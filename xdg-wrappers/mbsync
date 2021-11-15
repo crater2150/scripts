@@ -1,0 +1,3 @@
+#!/bin/zsh
+source ${$(realpath "$0"):h:h}/lib/next-in-path.zsh
+$(next-in-path mbsync $0) -c ${XDG_CONFIG_HOME:-$HOME/.config}/mbsyncrc $@
