@@ -1,0 +1,32 @@
+#!/bin/zsh
+
+if [[ ! $1 ]]; then
+	echo "Usage: frg SEARCH_TERM"
+	exit 1
+fi
+search_string="$1"
+
+if command -v nvimpager &>/dev/null; then
+	preview="grep '$search_string' -C 3 {} | nvimpager -c -- +doautocmd\ BufRead\ {}"
+elif command -v vimcat &>/dev/null; then
+	preview="grep '$search_string' -C 3 {} | vimcat -c doautocmd\ BufRead\ {}"
+elif command -v bat &>/dev/null; then
+	preview="grep '$search_string' -C 3 {} | bat --file-name {}"
+else
+	preview="grep '$search_string' -C 3 {}"
+fi
+
+if command -v rg &>/dev/null; then
+	search=rg
+elif command -v ag &>/dev/null; then
+	search=ag
+elif command -v ack &>/dev/null; then
+	search=ack
+else
+	search="grep -r"
+fi
+
+target=$("${search[@]}" -l $search_string | fzf --preview="$preview")
+if [[ -n $target ]]; then
+	$EDITOR $target
+fi
