@@ -11,4 +11,4 @@ profile_dir=${XDG_DATA_HOME:-$HOME/.local/share}/jails/webapp-$profile
 
 mkdir -p $profile_dir
 
-exec firejail --private=$profile_dir chromium "$@"
+exec firejail --private=$profile_dir chromium --restore-last-session=false --class=$profile "$@"
