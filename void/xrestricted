@@ -39,11 +39,31 @@ if [[ ! $jobs ]]; then
 fi
 
 cd $PACKAGES_DIR
+
+check "Checking git branch..."
+if [[ $(git rev-parse --abbrev-ref HEAD) != master ]]; then
+	if ! git diff --quiet; then
+		fail "not on master and working directory dirty, please fix manually"
+		exit 1
+	else
+		warn "not on master"
+		check "checking out master ..."
+		output=$(git checkout master 2>&1)
+		[[ $? == 0 ]] && succeed || { fail $output && exit 1 }
+	fi
+else
+	succeed "on master"
+fi
+
 packages=( $(ag -G 'template' restricted=yes srcpkgs/ | cut -d/ -f 2 | sort -u) )
 
 version() { grep -Poe '(?<=^version=).*$' srcpkgs/$1/template }
 install_restricted() {
-	./xbps-src pkg -j $jobs $1
+	if [[ -z $2 || -z hostdir/binpkgs/nonfree/$1-$2*(#qN) ]]; then
+		./xbps-src pkg -j $jobs $1
+	else
+		echo "Package already built for that version, installing..."
+	fi
 	xi $1
 }
 
@@ -60,17 +80,24 @@ case $1 in
 		;;
 	"update")
 		check "Updating package dir..."
-		git --git-dir=$PACKAGES_DIR/.git --work-tree=$PACKAGES_DIR/ pull \
-			&& succeed || fail
+		git --git-dir=$PACKAGES_DIR/.git --work-tree=$PACKAGES_DIR/ pull &>/dev/null\
+			&& succeed || { fail && exit 1 }
 		possible_updates=$(
 			xbps-checkvers -I -D $PACKAGES_DIR -m $packages |
 				awk '$2 != "?" { print }'
 			)
 
+		if [[ -z $possible_updates ]]; then
+			echo "All up to date"
+			exit 0
+		fi
+
 		awk '{ printf "\x1b[34m%s\x1b[0m: %s →  \x1b[92m%s\x1b[0m\n", $1, $2, $3 }' <<<"$possible_updates"
 		printf "Run updates? [y/N] "
 		if read -q; then
-			for pkg in $(cut -d' ' -f 1 <<<"$possible_updates"); install_restricted $pkg
+			for pkg in $(cut -d' ' -f 1,3 <<<"$possible_updates"); do
+				install_restricted $pkg $ver
+			done
 		fi
 		;;
 	"install")
