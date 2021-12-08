@@ -95,7 +95,7 @@ case $1 in
 		awk '{ printf "\x1b[34m%s\x1b[0m: %s →  \x1b[92m%s\x1b[0m\n", $1, $2, $3 }' <<<"$possible_updates"
 		printf "Run updates? [y/N] "
 		if read -q; then
-			for pkg in $(cut -d' ' -f 1,3 <<<"$possible_updates"); do
+			for pkg ver in $(cut -d' ' -f 1,3 <<<"$possible_updates"); do
 				install_restricted $pkg $ver
 			done
 		fi
