@@ -59,10 +59,11 @@ packages=( $(ag -G 'template' restricted=yes srcpkgs/ | cut -d/ -f 2 | sort -u) 
 
 version() { grep -Poe '(?<=^version=).*$' srcpkgs/$1/template }
 install_restricted() {
-	if [[ -z $2 || -z hostdir/binpkgs/nonfree/$1-$2*(#qN) ]]; then
+	local existing=( hostdir/binpkgs/nonfree/$1-$2*(N) )
+	if [[ -z $2 || -z $existing ]]; then
 		./xbps-src pkg -j $jobs $1
 	else
-		echo "Package already built for that version, installing..."
+		echo "Package already built for version $2 ($existing), installing..."
 	fi
 	xi $1
 }
@@ -95,9 +96,12 @@ case $1 in
 		awk '{ printf "\x1b[34m%s\x1b[0m: %s →  \x1b[92m%s\x1b[0m\n", $1, $2, $3 }' <<<"$possible_updates"
 		printf "Run updates? [y/N] "
 		if read -q; then
+			echo
 			for pkg ver in $(cut -d' ' -f 1,3 <<<"$possible_updates"); do
 				install_restricted $pkg $ver
 			done
+		else
+			echo
 		fi
 		;;
 	"install")
