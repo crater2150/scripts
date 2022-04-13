@@ -11,4 +11,4 @@ download-version() {
 }
 download-version 2.13 $(which amm)
 download-version 2.12 $(which amm)2.12
-download-version 3.0 $(which amm)3
+download-version 3.1 $(which amm)3
