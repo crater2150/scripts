@@ -1,0 +1,16 @@
+#!/bin/zsh
+source ${$(realpath "$0"):h:h}/lib/next-in-path.zsh
+opts=(
+		"-Dsbt.ivy.home=$XDG_CACHE_HOME/ivy"
+	"-Dsbt.boot.directory=$XDG_CACHE_HOME/sbt/boot"
+	"-Dsbt.preloaded=$XDG_CACHE_HOME/sbt/preloaded"
+	"-Dsbt.global.base=$XDG_CACHE_HOME/sbt"
+	"-Dsbt.global.staging=$XDG_CACHE_HOME/sbt/staging"
+	"-Dsbt.global.zinc=$XDG_CACHE_HOME/sbt/zinc"
+	"-Dsbt.dependency.base=$XDG_CACHE_HOME/sbt/dependency"
+	"-Dsbt.repository.config=$XDG_CONFIG_HOME/sbt/repositories"
+	"-Dsbt.global.settings=$XDG_CONFIG_HOME/sbt/global"
+	"-Dsbt.global.plugins=$XDG_CONFIG_HOME/sbt/plugins"
+)
+export SBT_OPTS=${(j: :)opts}
+$(next-in-path sbt $0) $@
