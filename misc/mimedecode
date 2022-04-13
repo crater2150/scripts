@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+
+from email.header import decode_header
+import sys
+if len(sys.argv) < 2:
+    encoded = sys.stdin.read()
+else:
+    encoded = ' '.join(sys.argv[1:])
+text, encoding = decode_header(encoded)[0]
+if type(text) is str:
+    print(text)
+else:
+    print(text.decode(encoding))
