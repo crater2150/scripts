@@ -1,0 +1,37 @@
+#!/bin/zsh
+#dep:git
+
+zparseopts -D -E u=untracked -untracked=untracked h=help -help=help
+
+if [[ $help ]]; then
+	<<-HELP
+	Usage: git dirties [-u] [REPOS]
+
+	List which of the given repos (or repos that are direct subdirectories of
+	the current dir if none are given) have uncommitted changes to tracked files.
+
+	Options:
+	-u, --untracked   Also show repos that have untracked files (but no changes)
+	HELP
+	exit 0
+fi
+
+if [[ -z $@ ]]; then
+	dirs=( *(/) )
+else
+	dirs=( "$@" )
+fi
+
+if [[ -t 0 ]]; then printf '\e[92mRepos with uncommited changes:\e[0m\n' >&2; fi
+
+for dir in $dirs; do
+	if [[ -d $dir/.git ]]; then
+		changes=$(git --git-dir=$dir/.git --work-tree=$dir status --porcelain)
+		if [[ -z $untracked ]]; then
+			changes=$(echo $changes | grep -v '^??')
+		fi
+		if [[ -n $changes ]]; then
+			echo $dir
+		fi
+	fi
+done
