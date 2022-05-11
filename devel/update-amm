@@ -9,6 +9,6 @@ download-version() {
 	) > $2
 	chmod +x $2
 }
-download-version 2.13 $(which amm)
+download-version 2.13 $(which amm)2.13
 download-version 2.12 $(which amm)2.12
 download-version 3.1 $(which amm)3
