@@ -20,7 +20,7 @@ if [[ ! -d $PACKAGES_DIR ]]; then
 	exit 1
 fi
 
-zparseopts -D -E h=help -help=help j:=jobs -jobs:=jobs
+zparseopts -D -E h=help -help=help j:=jobs -jobs:=jobs b:=branch -branch:=branch
 
 if [[ $help ]]; then
 	<<-HELP
@@ -30,6 +30,10 @@ if [[ $help ]]; then
 	
 	Install restricted packages from a void source repo.  Detected repo at:
 	  $VOID_PACKAGES_DIR
+	
+	Common options:
+		-j, --jobs N     Number of jobs to use
+		-b, --branch B   Use given branch instead of master
 	HELP
 	exit
 fi
@@ -40,19 +44,20 @@ fi
 
 cd $PACKAGES_DIR
 
+branch=${branch[2]:-master}
 check "Checking git branch..."
-if [[ $(git rev-parse --abbrev-ref HEAD) != master ]]; then
+if [[ $(git rev-parse --abbrev-ref HEAD) != $branch ]]; then
 	if ! git diff --quiet; then
-		fail "not on master and working directory dirty, please fix manually"
+		fail "not on $branch and working directory dirty, please fix manually"
 		exit 1
 	else
-		warn "not on master"
-		check "checking out master ..."
-		output=$(git checkout master 2>&1)
+		warn "not on $branch"
+		check "checking out $branch ..."
+		output=$(git checkout $branch 2>&1)
 		[[ $? == 0 ]] && succeed || { fail $output && exit 1 }
 	fi
 else
-	succeed "on master"
+	succeed "on $branch"
 fi
 
 packages=( $(ag -G 'template' restricted=yes srcpkgs/ | cut -d/ -f 2 | sort -u) )
