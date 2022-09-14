@@ -1,0 +1,42 @@
+#!/bin/zsh
+source ${$(realpath "$0"):h:h}/lib/next-in-path.zsh
+G8=$(next-in-path g8 $0)
+
+args=()
+zparseopts -D -E \
+	b:=branch -branch:=branch \
+	t:=tag -tag:=tag \
+	d:=directory -directory:=directory \
+	o:=out -out:=out \
+	h:=knownhosts -known-hosts:=knownhosts \
+	f=force -force=force \
+	-version=version \
+	-help=help
+
+for arg in "$@"; do
+	if [[ $arg =~ = ]]; then
+		args+=($arg)
+	elif [[ -n $template ]]; then
+		echo "Error: multiple templates specified:\n- $template\n- $arg"
+		exit 1
+	elif [[ $arg =~ / ]]; then
+		template=$arg
+	else
+		for template_path in \
+			${XDG_CONFIG_HOME:-$HOME/.config}/templates/$arg \
+			${XDG_CONFIG_HOME:-$HOME/.config}/templates/$arg.g8 \
+			${XDG_DATA_HOME:-$HOME/.local/share}/templates/$arg \
+			${XDG_DATA_HOME:-$HOME/.local/share}/templates/$arg.g8
+		do
+			if [[ -d $template_path ]]; then
+				template=file://$template_path
+			fi
+		done
+		if [[ ! $template ]]; then
+			echo "No local template found for name $arg"
+			exit 1
+		fi
+	fi
+done
+
+exec $G8 $branch $tag $directory $out $knownhosts $force $version $help $=args $template
