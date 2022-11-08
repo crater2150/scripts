@@ -1,0 +1,39 @@
+#!/bin/zsh
+#dep:curl
+
+setopt extendedglob
+
+source ${$(realpath "$0"):h:h}/lib/common.zsh
+
+CONF_BASE=${XDG_CONFIG_HOME:-$HOME/.config}/hedge-backup/
+source $CONF_BASE/config.sh
+BACKUP_BASE=${BACKUP_BASE:-${XDG_DATA_HOME:-$HOME/.local/share}/hedge-backup}
+mkdir -p $BACKUP_BASE
+
+if [[ -z $1 ]]; then
+	echo "Usage: $0 HEDGEDOC-DOMAIN..."
+	exit 1
+fi
+
+if [[ $1 == '-a' ]]; then
+	domains=($CONF_BASE/*~*/config.sh(N.:t))
+else
+	domains=($@)
+fi
+
+echo "Backing up: $domains"
+
+BACKUP_DATE=$(date --iso-8601=seconds)
+
+for domain in $domains; do
+	if [[ ! -e $CONF_BASE/$domain ]]; then
+		echo "\e[1;93mWarning: no configuration for $domain. Skipping"
+		continue
+	fi
+	mkdir -p $BACKUP_BASE/$domain
+	for doc in $(<$CONF_BASE/$domain); do
+		check "Backing up $domain/$doc..."
+		curl --silent https://$domain/$doc/download > $BACKUP_BASE/$domain/${doc}-${BACKUP_DATE} \
+			&& succeed || fail
+	done
+done
