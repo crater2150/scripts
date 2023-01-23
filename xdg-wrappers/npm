@@ -1,0 +1,4 @@
+#!/bin/zsh
+source ${$(realpath "$0"):h:h}/lib/next-in-path.zsh
+export NPM_CONFIG_USERCONFIG=$XDG_CONFIG_HOME/npm/npmrc
+$(next-in-path npm $0) $@

@@ -1,0 +1,4 @@
+#!/bin/zsh
+source ${$(realpath "$0"):h:h}/lib/next-in-path.zsh
+export NODE_REPL_HISTORY="$XDG_DATA_HOME"/node_repl_history
+$(next-in-path node $0) $@
