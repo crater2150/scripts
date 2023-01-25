@@ -1,4 +1,7 @@
 #!/bin/zsh
 source ${$(realpath "$0"):h:h}/lib/next-in-path.zsh
-export RIPGREP_CONFIG_PATH=${XDG_CONFIG_HOME:-$HOME/.config}/ripgreprc
+RIPGREP_CONFIG_PATH=${XDG_CONFIG_HOME:-$HOME/.config}/ripgreprc
+if [[ -e $RIPGREP_CONFIG_PATH ]]; then
+	export RIPGREP_CONFIG_PATH
+fi
 $(next-in-path rg $0) $@
