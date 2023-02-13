@@ -4,7 +4,7 @@ versions=$(curl -L https://api.github.com/repos/lihaoyi/Ammonite/releases/latest
 download-version() {
 	(
 	echo "#/usr/bin/env python --version sh" && \
-	curl -L $( echo $versions \
+	curl -L $( echo -E $versions \
 			| jq -r ".assets | map(select(.name | startswith(\"$1\")))[0].browser_download_url")
 	) > $2
 	chmod +x $2

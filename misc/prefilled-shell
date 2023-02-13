@@ -1,5 +1,5 @@
 #!/usr/bin/expect
-# dep: expect
+#dep:expect
 # based on https://askubuntu.com/a/16836/718886
 # and https://github.com/kovidgoyal/kitty/issues/3702#issuecomment-858230438
 

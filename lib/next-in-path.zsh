@@ -1,5 +1,6 @@
 # find next entry in PATH for wrapper scripts
 # Usage: next-in-path <program name> <current $0>
+typeset -U path
 next-in-path() {
 	entries=( $(which -a $1) )
 	index=${entries[(ie)$2]} 
