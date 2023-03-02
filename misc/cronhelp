@@ -1,0 +1,20 @@
+#!/bin/zsh
+#dep:xprintidle pgrep chronic
+
+ALLARGS=("$@")
+
+zparseopts -D -maxidle:=maxidle -in-chronic=chronic
+
+if [[ ! $chronic ]]; then
+	exec chronic $0 --in-chronic $ALLARGS
+fi
+
+if [[ $maxidle ]]; then
+	if (($(xprintidle) / 1000 < $maxidle)) && ! pgrep $1; then
+		eval "$*"
+		exit $?
+	fi
+elif ! pgrep $1; then
+	eval "$*"
+	exit $?
+fi
