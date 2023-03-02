@@ -12,13 +12,13 @@ val icon = "/usr/share/icons/Adwaita/48x48/actions/mail-message-new.png"
 val cacheFile = envPath("XDG_CACHE_HOME", os.home/".cache") / "seen-mails"
 val maildir = envPath("MAILDIR", os.home/"Mail")
 
-
 case class MailInfo(from: String, subject: String, mailbox: String)
 object MailInfo {
   def fromPath(p: os.Path, maildir: os.Path) = {
     val msg = readMessage(p)
+    val address = msg.getFrom.head.asInstanceOf[InternetAddress]
     MailInfo(
-      msg.getFrom.head.asInstanceOf[InternetAddress].getPersonal.replace("&", "&amp;"),
+      Option(address.getPersonal).map(_.replace("&", "&amp;")).getOrElse(address.getAddress),
       msg.getSubject.replace("&", "&amp;"),
       (p/up/up relativeTo maildir).toString
     )
