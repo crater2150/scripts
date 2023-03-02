@@ -1,7 +1,7 @@
 #!/bin/zsh
 source ${$(realpath "$0"):h:h}/lib/next-in-path.zsh
 opts=(
-		"-Dsbt.ivy.home=$XDG_CACHE_HOME/ivy"
+	"-Dsbt.ivy.home=$XDG_CACHE_HOME/ivy"
 	"-Dsbt.boot.directory=$XDG_CACHE_HOME/sbt/boot"
 	"-Dsbt.preloaded=$XDG_CACHE_HOME/sbt/preloaded"
 	"-Dsbt.global.base=$XDG_CACHE_HOME/sbt"

@@ -31,7 +31,7 @@ notify() {
 
 
 events=$(khal list now 1h)
-if [[ $events == "no events" ]]; then
+if [[ $events == "No events" ]]; then
 	exit 0
 else
 	notify "Upcoming events" "$(tail -n +2 <<<"$events"| awk '{printf("%s%s", sep, $0); sep="<br>"} END {print ""}')" "$(find /usr/share/icons/ -ipath \*48x48/\*appointment-soon.\* | head -n 1)"

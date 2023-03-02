@@ -5,11 +5,10 @@
 if [[ $2 ]]; then
 	encoding=$2
 else
-	encoding=$(chardetect "$1" | grep -oP '(?<=: )\S*')
+	encoding='utf-8'
+	#encoding=$(chardetect "$1" | grep -op '(?<=: )\s*')
 fi
-if ! iconv -f $encoding <<<"" &> /dev/null; then
-	cat "$1"
-elif [[ $encoding != 'utf-8' ]]; then
+if [[ $encoding != 'UTF-8' ]]; then
 	iconv -f $encoding -t 'utf-8' < "$1" | mdcat /dev/stdin
 else
 	mdcat $1

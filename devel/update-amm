@@ -1,14 +1,21 @@
 #!/bin/zsh
-versions=$(curl -L https://api.github.com/repos/lihaoyi/Ammonite/releases/latest)
+versions=$(curl -sL https://api.github.com/repos/lihaoyi/Ammonite/releases/latest)
 
 download-version() {
-	(
-	echo "#/usr/bin/env python --version sh" && \
-	curl -L $( echo -E $versions \
-			| jq -r ".assets | map(select(.name | startswith(\"$1\")))[0].browser_download_url")
-	) > $2
-	chmod +x $2
+	version=$(jq ".assets | map(select(.name | startswith(\"$1\")))[0]" <<<$versions)
+	target=$(jq -r ".browser_download_url" <<<$version)
+	timestamp=$(jq -r ".updated_at" <<<$version)
+
+	if [[ $1 == "-n" ]]; then
+		echo $target
+	elif [[ $(date -d $timestamp +%s) -lt $(date -r $2 +%s) ]]; then
+		echo "No update for $1"
+	else
+		echo "Updating $1 to $(jq .name <<<$version)"
+		curl -L $target > $2
+		chmod +x $2
+	fi
 }
 download-version 2.13 $(which amm)2.13
 download-version 2.12 $(which amm)2.12
-download-version 3.1 $(which amm)3
+download-version 3.2 $(which amm)3

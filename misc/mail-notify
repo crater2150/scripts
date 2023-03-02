@@ -1,7 +1,7 @@
 #!/usr/bin/env amm
 
 import $ivy.`com.sun.mail:javax.mail:1.6.2`
-import $ivy.`com.lihaoyi::os-lib:0.7.1`
+import $ivy.`com.lihaoyi::os-lib:0.8.1`
 
 import javax.mail.internet._
 import os.up
@@ -12,25 +12,29 @@ val icon = "/usr/share/icons/Adwaita/48x48/actions/mail-message-new.png"
 val cacheFile = envPath("XDG_CACHE_HOME", os.home/".cache") / "seen-mails"
 val maildir = envPath("MAILDIR", os.home/"Mail")
 
+def from(msg: MimeMessage): String =
+  msg.getFrom.headOption
+    .map(_.asInstanceOf[InternetAddress])
+    .map(addr => Option(addr.getPersonal).map(_.replace("&", "&amp;")).getOrElse(addr.getAddress))
+    .getOrElse("unknown")
+
+
 case class MailInfo(from: String, subject: String, mailbox: String)
-object MailInfo {
-  def fromPath(p: os.Path, maildir: os.Path) = {
+object MailInfo:
+  def fromPath(p: os.Path, maildir: os.Path) =
     val msg = readMessage(p)
     val address = msg.getFrom.head.asInstanceOf[InternetAddress]
     MailInfo(
-      Option(address.getPersonal).map(_.replace("&", "&amp;")).getOrElse(address.getAddress),
+      from(msg),
       msg.getSubject.replace("&", "&amp;"),
       (p/up/up relativeTo maildir).toString
     )
-  }
-}
 
 val session = javax.mail.Session.getDefaultInstance(new java.util.Properties)
 
-def readMessage(path: os.Path) = {
+def readMessage(path: os.Path): MimeMessage =
   val in = os.read.inputStream(path)
   new MimeMessage(session, in)
-}
 
 def envPath(envVar: String, default: os.Path): os.Path =
   sys.env.get(envVar).map(s => os.Path(s)).getOrElse(default)
@@ -45,9 +49,8 @@ val unseenMailPaths = newMailPaths &~ cache
 
 val unseenMails = unseenMailPaths.map(p => MailInfo.fromPath(os.Path(p), maildir))
 
-if (!unseenMails.isEmpty) {
+if !unseenMails.isEmpty then
   val markup = unseenMails.map(msg => s"<b>${msg.from}:</b> ${msg.subject}<br>").mkString
   os.proc("notify-send", s"--icon=$icon", "Mails", markup).call()
-}
 
 os.write.over(cacheFile, newMailPaths.mkString("", "\n", "\n"))
