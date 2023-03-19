@@ -1,9 +1,22 @@
 #!/bin/zsh
-ICON=/usr/share/icons/Paper/16x16/status/software-update-available.png
+ICON=/usr/share/icons/Papirus/24x24/panel/software-update-available.png
+IDCACHE=${XDG_CACHE_HOME:-$HOME/.cache}/xcheckupdates-id
 
-updates=$(xbps-install -Sun | wc -l)
-if [[ $updates -gt 0 ]]; then
-	notify-send --icon=$ICON -t 0 "$updates Updates available"
-else
-	notify-send -t 1500 "Updates checked, nothing new"
+zparseopts -D -E l=list -list=list
+
+if [[ -e $IDCACHE ]]; then
+	prev_id=$(<$IDCACHE)
 fi
+xbps-install -S &>/dev/null
+updates=$(xbps-install -un 2>&1)
+num_updates=$(echo -n $updates | wc -l)
+
+if [[ $list ]]; then
+	echo -n $updates
+fi
+
+if [[ $num_updates -gt 0 ]]; then
+	notify-send -p ${prev_id+-r} $prev_id --icon=$ICON -t 0 "$num_updates Updates available"
+else
+	notify-send -p ${prev_id+-r} $prev_id -t 1500 "Updates checked, nothing new"
+fi > $IDCACHE
